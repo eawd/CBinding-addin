@@ -106,6 +106,7 @@
     <None Include="ChangeLog" />
     <None Include="Makefile" />
     <None Include="ClangSharp.dll" />
+    <None Include="libclang.so" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CBinding.addin.xml">
