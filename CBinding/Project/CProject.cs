@@ -452,7 +452,7 @@ namespace CBinding
 		protected override void OnFileRemovedFromProject (ProjectFileEventArgs e)
 		{
 			base.OnFileRemovedFromProject (e);
-
+			
 			foreach (ProjectFileEventInfo fe in e)
 				TagDatabaseManager.Instance.RemoveFileInfo (this, fe.ProjectFile.Name);
 		}

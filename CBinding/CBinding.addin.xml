@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
 <ExtensionModel>
+
 	<Extension path = "/MonoDevelop/Core/StockIcons">
 		<StockIcon stockid = "md-union" resource = "union-16.png" size="Menu"/>
 		<StockIcon stockid = "md-protected-union" resource = "union-protected-16.png" size="Menu"/>
@@ -8,7 +8,7 @@
 		<StockIcon stockid = "md-h-file" icon = "md-file-header" size="Menu" />
 		<StockIcon stockid = "md-cpp-file" icon = "md-file-source" size="Menu" />
 	</Extension>
-
+	
 	<Extension path = "/MonoDevelop/Ide/FileFilters">
 		<FileFilter
 			id = "CPP"
@@ -83,11 +83,11 @@
 			<File pattern="*.M" />
 		</MimeType>
 	</Extension>
-
+	
 	<Extension path = "/MonoDevelop/ProjectModel/ProjectBindings">
 		<ProjectBinding id = "CProject" class = "CBinding.CProjectBinding"/>
 	</Extension>
-
+	
 	<Extension path = "/MonoDevelop/ProjectModel/LanguageBindings">
 		<LanguageBinding
 			id = "C"
@@ -106,8 +106,8 @@
 			supportedextensions = ".mm,.M"
 		    class = "CBinding.ObjCppLanguageBinding"/>
     </Extension>
-
-    <Extension path = "/MonoDevelop/Ide/GlobalOptionsDialog/Projects">
+    
+	<Extension path = "/MonoDevelop/Ide/GlobalOptionsDialog/Projects">
 		<Section
 			id = "CBindingOptions"
 			_label = "C/C++"
@@ -131,7 +131,7 @@
 			    class = "CBinding.OutputOptionsPanelBinding"/>
 		</Condition>
 	</Extension>
-
+	
 	<ExtensionPoint path = "/CBinding/Views/ProjectBrowser/ContextMenu/PackagesFolderNode" name = "Packages folder context menu">
 		<Description>Context menu for packages folder in the solution pad.</Description>
 		<ExtensionNodeSet id = "MonoDevelop.Components.Commands.ItemSet"/>
@@ -165,7 +165,7 @@
 		<NodeBuilder id = "CBinding.Navigation.UnionNodeBuilder" class = "CBinding.Navigation.UnionNodeBuilder"/>
 		<NodeBuilder id = "CBinding.Navigation.TypedefNodeBuilder" class = "CBinding.Navigation.TypedefNodeBuilder"/>
 	</Extension>
-
+	
 	<Extension path = "/MonoDevelop/Ide/Commands">
 		<Category _name = "C/C++" id = "C/C++">
 			<Command id = "CBinding.CProjectCommands.AddPackage" _label = "Edit Packages..." />
@@ -211,7 +211,23 @@
 	<Extension path = "/MonoDevelop/ProjectModel/MSBuildItemTypes">
 		<SolutionItem type="CBinding.CProject" extension="cproj" guid="{2857B73E-F847-4B02-9238-064979017E93}"/>
 	</Extension>
-
+	
+<!-- Current Autotools AddIn is very .NET specific
+	<Module>
+	    <Runtime>
+	        <Import assembly = "CBinding.Autotools.dll"/>
+	    </Runtime>
+	    
+		<Dependencies>
+			<Addin id = "MonoDevelop.Autotools" version = "4.2.3"/>
+		</Dependencies>
+		
+		<Extension path = "/Autotools/SimpleSetups">
+			<Class class = "CBinding.Autotools.CAutotoolsSetup"/>
+		</Extension>
+	</Module>
+-->
+	
 	<Extension path = "/MonoDevelop/TypeSystem/Parser">
 		<Parser class="CBinding.Parser.CDocumentParser" mimeType = "text/x-csrc, text/x-chdr, text/x-c++src, text/x-c++hdr, text/x-objcsrc, text/x-objc++src" />
 	</Extension>

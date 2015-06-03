@@ -8,7 +8,6 @@
 	<TemplateConfiguration>
 		<_Name>Shared Library</_Name>
 		<Category>other/misc/c</Category>
-		<_Category>other/misc/c</_Category>
 		<Icon>md-project-library</Icon>
 		<Image id="md-library-project" />
 		<LanguageName>CPP</LanguageName>
