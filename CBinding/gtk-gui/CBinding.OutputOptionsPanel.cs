@@ -90,7 +90,9 @@ namespace CBinding
 			w4.XOptions = ((global::Gtk.AttachOptions)(4));
 			w4.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
-			this.outputEntry = null;
+			this.outputEntry = new global::MonoDevelop.Components.FolderEntry ();
+			this.outputEntry.Name = "outputEntry";
+			this.outputEntry.DisplayAsRelativePath = false;
 			this.table1.Add (this.outputEntry);
 			global::Gtk.Table.TableChild w5 = ((global::Gtk.Table.TableChild)(this.table1 [this.outputEntry]));
 			w5.TopAttach = ((uint)(2));

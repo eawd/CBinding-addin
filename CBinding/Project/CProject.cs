@@ -435,9 +435,9 @@ namespace CBinding
 				    e.ProjectFile.BuildAction == BuildAction.Compile) {
 					e.ProjectFile.BuildAction = BuildAction.None;
 				}
-				
+
 				if (e.ProjectFile.BuildAction == BuildAction.Compile)
-					TagDatabaseManager.Instance.UpdateFileTags (this, e.ProjectFile.Name);
+					CLangManager.Instance.AddToTranslationUnits (this, e.ProjectFile.Name);
 			}
 		}
 		
@@ -446,15 +446,15 @@ namespace CBinding
 			base.OnFileChangedInProject (e);
 			
 			foreach (ProjectFileEventInfo fe in e)
-				TagDatabaseManager.Instance.UpdateFileTags (this, fe.ProjectFile.Name);
+				CLangManager.Instance.UpdateTranslationUnit (this, fe.ProjectFile.Name);
 		}
 		
 		protected override void OnFileRemovedFromProject (ProjectFileEventArgs e)
 		{
 			base.OnFileRemovedFromProject (e);
-
+			
 			foreach (ProjectFileEventInfo fe in e)
-				TagDatabaseManager.Instance.RemoveFileInfo (this, fe.ProjectFile.Name);
+				CLangManager.Instance.RemoveTranslationUnit (this, fe.ProjectFile.Name);
 		}
 
 		
@@ -466,7 +466,7 @@ namespace CBinding
 				return;
 			
 			foreach (ProjectFile f in p.Files)
-				TagDatabaseManager.Instance.UpdateFileTags (p, f.Name);
+				CLangManager.Instance.UpdateTranslationUnit (p, f.Name);
 		}
 		
 		internal void NotifyPackageRemovedFromProject (Package package)

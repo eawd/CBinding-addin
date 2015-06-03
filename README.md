@@ -1,2 +1,2 @@
 # CBinding-addin
-MonoDevelop CBiniding addin (work in progress).
+MonoDevelop CBinding addin (work in progress).

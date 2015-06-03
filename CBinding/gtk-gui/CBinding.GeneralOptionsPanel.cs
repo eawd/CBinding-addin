@@ -139,9 +139,7 @@ namespace CBinding
 			w9.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.parseSystemTagsCheck = new global::Gtk.CheckButton ();
-			this.parseSystemTagsCheck.TooltipMarkup = "Choose whether you want to parse system tags or not, if you do you will get compl" +
-			"etion for things like printf, but the tag parsing process will take considerably" +
-			" longer.";
+			this.parseSystemTagsCheck.TooltipMarkup = "Choose whether you want to parse system tags or not, if you do you will get completion for things like printf, but the tag parsing process will take considerably longer.";
 			this.parseSystemTagsCheck.CanFocus = true;
 			this.parseSystemTagsCheck.Name = "parseSystemTagsCheck";
 			this.parseSystemTagsCheck.Label = global::Mono.Unix.Catalog.GetString ("Parse System Tags");

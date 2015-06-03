@@ -5,7 +5,13 @@
     <target-gtk-version>2.12</target-gtk-version>
   </configuration>
   <import>
-    <widget-library name="../../../build/AddIns/BackendBindings/MonoDevelop.CBinding.dll" internal="true" />
+    <widget-library name="MonoDevelop.Ide, Version=2.6.0.0, Culture=neutral" />
+    <widget-library name="MonoDevelop.Deployment, Version=2.6.0.0, Culture=neutral" />
+    <widget-library name="MonoDevelop.Deployment.Linux, Version=2.6.0.0, Culture=neutral" />
+    <widget-library name="Mono.TextEditor, Version=1.0.0.0, Culture=neutral" />
+    <widget-library name="MonoDevelop.DesignerSupport, Version=2.6.0.0, Culture=neutral" />
+    <widget-library name="MonoDevelop.Refactoring, Version=2.6.0.0, Culture=neutral" />
+    <widget-library name="../build/bin/Debug/MonoDevelop.CBinding.dll" internal="true" />
   </import>
   <widget class="Gtk.Bin" id="CBinding.CodeGenerationPanel" design-size="611 396">
     <property name="MemberName" />
@@ -1488,6 +1494,7 @@ Example:
             <child>
               <widget class="MonoDevelop.Components.FolderEntry" id="outputEntry">
                 <property name="MemberName" />
+                <property name="DisplayAsRelativePath">False</property>
               </widget>
               <packing>
                 <property name="TopAttach">2</property>
