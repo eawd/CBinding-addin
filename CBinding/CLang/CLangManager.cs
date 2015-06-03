@@ -40,7 +40,7 @@ namespace CBinding
 					0,
 					null,
 					Convert.ToUInt32(unsavedFiles.Count),
-					out unsavedFilesArray[0] //FIXME this shouldnt look like this IMHO
+					unsavedFilesArray
 				)
 			);
 		}
@@ -54,7 +54,7 @@ namespace CBinding
 				0,
 				null,
 				Convert.ToUInt32(unsavedFiles.Count),
-				out unsavedFilesArray[0] //FIXME this shouldnt look like this IMHO
+				unsavedFilesArray
 			);
 		}
 
