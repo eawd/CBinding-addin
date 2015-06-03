@@ -1,5 +1,5 @@
 //
-// CProjectServiceExtension.cs
+// CAutotoolsSetup.cs
 //
 // Authors:
 //   Marcos David Marin Amador <MarcosMarin@gmail.com>
@@ -30,41 +30,45 @@
 //
 
 using System;
-using System.IO;
-using System.Text;
 
-using Mono.Addins;
-
-using MonoDevelop.Core;
 using MonoDevelop.Projects;
-using MonoDevelop.Core.Execution;
+using MonoDevelop.Autotools;
 
-namespace CBinding
+using CBinding;
+
+namespace CBinding.Autotools
 {
-	public class CProjectServiceExtension : ProjectServiceExtension
+	public class CAutotoolsSetup : ISimpleAutotoolsSetup
 	{
-		public override bool SupportsItem (IBuildTarget item)
+		public string GetCompilerCommand (Project project, string configuration)
 		{
-			return item is CProject;
+			if (!CanDeploy (project))
+				throw new Exception ("Not a deployable project.");
+			
+			CProject cproj = project as CProject;
+			
+			return cproj.Compiler.CompilerCommand;
 		}
 
-		protected override BuildResult Build (IProgressMonitor monitor, SolutionEntityItem entry, ConfigurationSelector configuration)
+		// FIXME: Currently only the compiler flags are sent, no linker flags are sent.
+		public string GetCompilerFlags (Project project, string configuration)
 		{
-			CProject project = (CProject) entry;
-			CProjectConfiguration conf = (CProjectConfiguration) project.GetConfiguration (configuration);
-			if (conf.CompileTarget != CompileTarget.Bin)
-				project.WriteMDPkgPackage (configuration);
+			if (!CanDeploy (project))
+				throw new Exception ("Not a deployable project.");
 			
-			return base.Build (monitor, entry, configuration);
+			CProjectConfiguration config = project.Configurations[configuration] as CProjectConfiguration;
+			
+			if (config == null)
+				return string.Empty;
+			
+			CProject cproj = project as CProject;
+			
+			return cproj.Compiler.GetCompilerFlags (cproj, config);
 		}
-		
-		protected override void Clean (IProgressMonitor monitor, SolutionEntityItem entry, ConfigurationSelector configuration)
+
+		public bool CanDeploy (Project project)
 		{
-			base.Clean (monitor, entry, configuration);
-			
-			CProject project = (CProject) entry;
-			CProjectConfiguration conf = (CProjectConfiguration) project.GetConfiguration (configuration);
-			project.Compiler.Clean (project.Files, conf, monitor);
+			return project is CProject;
 		}
 	}
 }

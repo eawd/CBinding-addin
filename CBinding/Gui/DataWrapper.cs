@@ -1,5 +1,5 @@
 //
-// ObjCLanguageBinding.cs
+// DataProvider.cs
 //
 // Authors:
 //   Marcos David Marin Amador <MarcosMarin@gmail.com>
@@ -30,33 +30,56 @@
 //
 
 using System;
-using System.IO;
+using System.Collections;
+using System.Collections.Generic;
 
-using Mono.Addins;
 
-using MonoDevelop.Projects;
+using MonoDevelop.Ide.Gui;
+using MonoDevelop.Ide.CodeCompletion;
+
+using CBinding.Parser;
 using MonoDevelop.Core;
+using MonoDevelop.Ide.Editor;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace CBinding
 {
-	public class ObjCLanguageBinding : ILanguageBinding
+	sealed class DataWrapper : ParameterHintingData
 	{
-		public string Language {
-			get { return "Objective C"; }
+		readonly Function f;
+
+		public Function Function {
+			get {
+				return f;
+			}
 		}
-		
-		public string SingleLineCommentTag { get { return "//"; } }
-		public string BlockCommentStartTag { get { return "/*"; } }
-		public string BlockCommentEndTag { get { return "*/"; } }
-		
-		public bool IsSourceCodeFile (FilePath fileName)
+
+		public DataWrapper (Function f) : base(null)
 		{
-			return fileName.ToString ().EndsWith (".m", StringComparison.Ordinal);
+			this.f = f;
 		}
-		
-		public FilePath GetFileName (FilePath baseName)
+
+		public override int ParameterCount {
+			get {
+				return f.ParameterCount;
+			}
+		}
+
+		public override bool IsParameterListAllowed {
+			get {
+				return f.IsParameterListAllowed;
+			}
+		}
+
+		public override string GetParameterName (int parameter)
 		{
-			return baseName + ".m";
+			return f.GetParameterName (parameter);
+		}
+
+		public override Task<TooltipInformation> CreateTooltipInformation (TextEditor editor, DocumentContext ctx, int currentParameter, bool smartWrap, CancellationToken ctoken)
+		{
+			return Task.FromResult<TooltipInformation> (null);
 		}
 	}
 }
