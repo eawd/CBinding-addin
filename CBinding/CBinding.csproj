@@ -13,7 +13,7 @@
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
-    <OutputPath>..\..\..\build\AddIns\BackendBindings\</OutputPath>
+    <OutputPath>bin</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
@@ -23,12 +23,12 @@
     <AssemblyOriginatorKeyFile>.</AssemblyOriginatorKeyFile>
     <DefineConstants>DEBUG</DefineConstants>
     <NoWarn>1591;1573</NoWarn>
-    <DocumentationFile>..\..\..\build\AddIns\BackendBindings\MonoDevelop.CBinding.xml</DocumentationFile>
+    <DocumentationFile>build\MonoDevelop.CBinding.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>True</Optimize>
-    <OutputPath>..\..\..\build\AddIns\BackendBindings\</OutputPath>
+    <OutputPath>bin</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
@@ -94,12 +94,16 @@
     <Reference Include="MonoDevelop.Refactoring, Version=2.6.0.0, Culture=neutral">
       <Package>monodevelop-core-addins</Package>
     </Reference>
+    <Reference Include="ClangSharp">
+      <HintPath>ClangSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.am" />
     <None Include="README" />
     <None Include="ChangeLog" />
     <None Include="Makefile" />
+    <None Include="ClangSharp.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CBinding.addin.xml">
@@ -244,6 +248,9 @@
     <Compile Include="Parser\ExuberantCTagsManager.cs" />
     <Compile Include="Parser\BsdCTagsManager.cs" />
     <Compile Include="AddinInfo.cs" />
+    <Compile Include="Compiler\ClangCCompiler.cs" />
+    <Compile Include="Compiler\ClangCXXCompiler.cs" />
+    <Compile Include="CLang\CLangManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -253,4 +260,7 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <Folder Include="CLang\" />
+  </ItemGroup>
 </Project>
