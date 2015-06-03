@@ -5,125 +5,65 @@ namespace CBinding
 	public partial class CodeGenerationPanel
 	{
 		private global::Gtk.Notebook notebook1;
-		
 		private global::Gtk.VBox vbox6;
-		
 		private global::Gtk.Table table1;
-		
 		private global::Gtk.Label label4;
-		
 		private global::Gtk.Label label5;
-		
 		private global::Gtk.Label label6;
-		
 		private global::Gtk.SpinButton optimizationSpinButton;
-		
 		private global::Gtk.ComboBox targetComboBox;
-		
 		private global::Gtk.VBox vbox1;
-		
 		private global::Gtk.RadioButton noWarningRadio;
-		
 		private global::Gtk.RadioButton normalWarningRadio;
-		
 		private global::Gtk.RadioButton allWarningRadio;
-		
 		private global::Gtk.CheckButton warningsAsErrorsCheckBox;
-		
 		private global::Gtk.HBox hbox1;
-		
 		private global::Gtk.Label label12;
-		
 		private global::Gtk.Entry defineSymbolsTextEntry;
-		
 		private global::Gtk.Frame frame2;
-		
 		private global::Gtk.Alignment GtkAlignment;
-		
 		private global::Gtk.Table table5;
-		
 		private global::Gtk.Label label11;
-		
 		private global::Gtk.Label label7;
-		
 		private global::Gtk.ScrolledWindow scrolledwindow4;
-		
 		private global::Gtk.TextView extraCompilerTextView;
-		
 		private global::Gtk.ScrolledWindow scrolledwindow5;
-		
 		private global::Gtk.TextView extraLinkerTextView;
-		
 		private global::Gtk.Label GtkLabel12;
-		
 		private global::Gtk.Label label1;
-		
 		private global::Gtk.Table table2;
-		
 		private global::Gtk.Button addLibButton;
-		
 		private global::Gtk.Label label8;
-		
 		private global::Gtk.Entry libAddEntry;
-		
 		private global::Gtk.ScrolledWindow scrolledwindow1;
-		
 		private global::Gtk.TreeView libTreeView;
-		
 		private global::Gtk.VBox vbox4;
-		
 		private global::Gtk.Button browseButton;
-		
 		private global::Gtk.Button removeLibButton;
-		
 		private global::Gtk.Label label2;
-		
 		private global::Gtk.VBox vbox7;
-		
 		private global::Gtk.Table table4;
-		
 		private global::Gtk.HBox hbox2;
-		
 		private global::Gtk.Entry libPathEntry;
-		
 		private global::Gtk.Button quickInsertLibButton;
-		
 		private global::Gtk.Label label10;
-		
 		private global::Gtk.Button libPathAddButton;
-		
 		private global::Gtk.ScrolledWindow scrolledwindow3;
-		
 		private global::Gtk.TreeView libPathTreeView;
-		
 		private global::Gtk.VBox vbox3;
-		
 		private global::Gtk.Button libPathBrowseButton;
-		
 		private global::Gtk.Button libPathRemoveButton;
-		
 		private global::Gtk.Table table3;
-		
 		private global::Gtk.HBox hbox3;
-		
 		private global::Gtk.Entry includePathEntry;
-		
 		private global::Gtk.Button quickInsertIncludeButton;
-		
 		private global::Gtk.Button includePathAddButton;
-		
 		private global::Gtk.Label label9;
-		
 		private global::Gtk.ScrolledWindow scrolledwindow2;
-		
 		private global::Gtk.TreeView includePathTreeView;
-		
 		private global::Gtk.VBox vbox5;
-		
 		private global::Gtk.Button includePathBrowseButton;
-		
 		private global::Gtk.Button includePathRemoveButton;
-		
 		private global::Gtk.Label label3;
 
 		protected virtual void Build ()
@@ -182,11 +122,11 @@ namespace CBinding
 			w3.XOptions = ((global::Gtk.AttachOptions)(4));
 			w3.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
-			this.optimizationSpinButton = new global::Gtk.SpinButton (0D, 3D, 1D);
+			this.optimizationSpinButton = new global::Gtk.SpinButton (0, 3, 1);
 			this.optimizationSpinButton.CanFocus = true;
 			this.optimizationSpinButton.Name = "optimizationSpinButton";
-			this.optimizationSpinButton.Adjustment.PageIncrement = 10D;
-			this.optimizationSpinButton.ClimbRate = 1D;
+			this.optimizationSpinButton.Adjustment.PageIncrement = 10;
+			this.optimizationSpinButton.ClimbRate = 1;
 			this.optimizationSpinButton.Numeric = true;
 			this.table1.Add (this.optimizationSpinButton);
 			global::Gtk.Table.TableChild w4 = ((global::Gtk.Table.TableChild)(this.table1 [this.optimizationSpinButton]));
@@ -218,6 +158,7 @@ namespace CBinding
 			this.noWarningRadio = new global::Gtk.RadioButton (global::Mono.Unix.Catalog.GetString ("no warnings"));
 			this.noWarningRadio.CanFocus = true;
 			this.noWarningRadio.Name = "noWarningRadio";
+			this.noWarningRadio.Active = true;
 			this.noWarningRadio.DrawIndicator = true;
 			this.noWarningRadio.UseUnderline = true;
 			this.noWarningRadio.Group = new global::GLib.SList (global::System.IntPtr.Zero);
@@ -346,8 +287,7 @@ namespace CBinding
 			this.scrolledwindow4.ShadowType = ((global::Gtk.ShadowType)(1));
 			// Container child scrolledwindow4.Gtk.Container+ContainerChild
 			this.extraCompilerTextView = new global::Gtk.TextView ();
-			this.extraCompilerTextView.TooltipMarkup = "A newline seperated list of extra options to send to the compiler.\nOne option can" +
-			" be in more than one line.\nExample:\n\t`pkg-config\n\t--cflags\n\tcairo`";
+			this.extraCompilerTextView.TooltipMarkup = "A newline seperated list of extra options to send to the compiler.\nOne option can be in more than one line.\nExample:\n\t`pkg-config\n\t--cflags\n\tcairo`";
 			this.extraCompilerTextView.CanFocus = true;
 			this.extraCompilerTextView.Name = "extraCompilerTextView";
 			this.scrolledwindow4.Add (this.extraCompilerTextView);
@@ -362,8 +302,7 @@ namespace CBinding
 			this.scrolledwindow5.ShadowType = ((global::Gtk.ShadowType)(1));
 			// Container child scrolledwindow5.Gtk.Container+ContainerChild
 			this.extraLinkerTextView = new global::Gtk.TextView ();
-			this.extraLinkerTextView.TooltipMarkup = "A newline seperated list of extra options to send to the linker.\nOne option can b" +
-			"e in more than one line.\nExample:\n\t`pkg-config\n\t--libs\n\tcairo`";
+			this.extraLinkerTextView.TooltipMarkup = "A newline seperated list of extra options to send to the linker.\nOne option can be in more than one line.\nExample:\n\t`pkg-config\n\t--libs\n\tcairo`";
 			this.extraLinkerTextView.CanFocus = true;
 			this.extraLinkerTextView.Name = "extraLinkerTextView";
 			this.scrolledwindow5.Add (this.extraLinkerTextView);
