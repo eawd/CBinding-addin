@@ -1,9 +1,9 @@
 ﻿//
-// GppCompiler.cs: Provides functionality to compile using g++
+// ClangCXXCompiler.cs: Provides functionality to compile using clang++
 //
 // Authors:
 //   Marcos David Marin Amador <MarcosMarin@gmail.com>
-//
+//	 Guba Dániel Olivér <gudaol@gmx.com>
 // Copyright (C) 2007 Marcos David Marin Amador
 //
 //
