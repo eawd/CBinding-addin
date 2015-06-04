@@ -53,7 +53,7 @@ namespace CBinding.Parser
 			ProjectInformation pi = ProjectInformationManager.Instance.Get (project);
 			
 			string content = options.Content.Text;
-			string[] contentLines = content.Split (new string[]{Environment.NewLine}, StringSplitOptions.None);
+			string[] contentLines = content.Split (new string[]{ Environment.NewLine }, StringSplitOptions.None);
 			
 			var globals = new DefaultUnresolvedTypeDefinition ("", GettextCatalog.GetString ("(Global Scope)"));
 			lock (pi) {
@@ -61,7 +61,8 @@ namespace CBinding.Parser
 				foreach (LanguageItem li in pi.Containers ()) {
 					if (null == li.Parent && FilePath.Equals (li.File, fileName)) {
 						var tmp = AddLanguageItem (pi, globals, li, contentLines) as IUnresolvedTypeDefinition;
-						if (null != tmp){ /*doc.TopLevelTypeDefinitions.Add (tmp);*/ }
+						if (null != tmp) { /*doc.TopLevelTypeDefinitions.Add (tmp);*/
+						}
 					}
 				}
 				
@@ -74,9 +75,9 @@ namespace CBinding.Parser
 			}
 			
 			//doc.TopLevelTypeDefinitions.Add (globals);
-			return System.Threading.Tasks.Task.FromResult((ParsedDocument)doc);
+			return System.Threading.Tasks.Task.FromResult ((ParsedDocument)doc);
 		}
-		
+
 		/// <summary>
 		/// Finds the end of a function's definition by matching braces.
 		/// </summary>
@@ -89,13 +90,16 @@ namespace CBinding.Parser
 		/// <returns>
 		/// A <see cref="System.Int32"/>: The detected end of the function.
 		/// </returns>
-		static int FindFunctionEnd (string[] content, int startLine) {
+		static int FindFunctionEnd (string[] content, int startLine)
+		{
 			int start = FindFunctionStart (content, startLine);
-			if (0 > start){ return startLine; }
+			if (0 > start) {
+				return startLine;
+			}
 			
 			int count = 0;
 			
-			for (int i= start; i<content.Length; ++i) {
+			for (int i = start; i < content.Length; ++i) {
 				foreach (char c in content[i]) {
 					switch (c) {
 					case '{':
@@ -112,7 +116,7 @@ namespace CBinding.Parser
 			
 			return startLine;
 		}
-		
+
 		/// <summary>
 		/// Finds the start of a function's definition.
 		/// </summary>
@@ -126,15 +130,16 @@ namespace CBinding.Parser
 		/// A <see cref="System.Int32"/>: The detected start of the function 
 		/// definition, or -1.
 		/// </returns>
-		static int FindFunctionStart (string[] content, int startLine) {
+		static int FindFunctionStart (string[] content, int startLine)
+		{
 			int semicolon = -1;
 			int bracket = -1;
 			
-			for (int i=startLine; i<content.Length; ++i) {
-				semicolon = content[i].IndexOf (';');
-				bracket = content[i].IndexOf ('{');
+			for (int i = startLine; i < content.Length; ++i) {
+				semicolon = content [i].IndexOf (';');
+				bracket = content [i].IndexOf ('{');
 				if (0 <= semicolon) {
-					return (0 > bracket ^ semicolon < bracket)? -1: i;
+					return (0 > bracket ^ semicolon < bracket) ? -1 : i;
 				} else if (0 <= bracket) {
 					return i;
 				}
@@ -142,9 +147,9 @@ namespace CBinding.Parser
 			
 			return -1;
 		}
-		
+
 		static readonly Regex paramExpression = new Regex (@"(?<type>[^\s]+)\s+(?<subtype>[*&]*)(?<name>[^\s[]+)(?<array>\[.*)?", RegexOptions.Compiled);
-		
+
 		static object AddLanguageItem (ProjectInformation pi, DefaultUnresolvedTypeDefinition klass, LanguageItem li, string[] contentLines)
 		{
 			
@@ -164,7 +169,7 @@ namespace CBinding.Parser
 			klass.Members.Add (field);
 			return field;
 		}
-		
+
 		/// <summary>
 		/// Create an IMember from a LanguageItem,
 		/// using the source document to locate declaration bounds.
@@ -176,13 +181,13 @@ namespace CBinding.Parser
 		/// A <see cref="LanguageItem"/>: The item to convert.
 		/// </param>
 		/// <param name="contentLines">
-		/// A <see cref="System.String[]"/>: The document in which item is defined.
+		/// A <see cref="string[]"/>: The document in which item is defined.
 		/// </param>
 		static DefaultUnresolvedTypeDefinition LanguageItemToIType (ProjectInformation pi, LanguageItem item, string[] contentLines)
 		{
 			var klass = new DefaultUnresolvedTypeDefinition ("", item.File);
 			if (item is Class || item is Structure) {
-				klass.Region = new DomRegion ((int)item.Line, 1, FindFunctionEnd (contentLines, (int)item.Line-1) + 2, 1);
+				klass.Region = new DomRegion ((int)item.Line, 1, FindFunctionEnd (contentLines, (int)item.Line - 1) + 2, 1);
 				klass.Kind = item is Class ? TypeKind.Class : TypeKind.Struct;
 				foreach (LanguageItem li in pi.AllItems ()) {
 					if (klass.Equals (li.Parent) && FilePath.Equals (li.File, item.File))
@@ -195,18 +200,18 @@ namespace CBinding.Parser
 			klass.Kind = TypeKind.Enum;
 			return klass;
 		}
-		
+
 		static IUnresolvedField LanguageItemToIField (IUnresolvedTypeDefinition type, LanguageItem item, string[] contentLines)
 		{
 			var result = new DefaultUnresolvedField (type, item.Name);
 			result.Region = new DomRegion ((int)item.Line, 1, (int)item.Line + 1, 1);
 			return result;
 		}
-		
+
 		static IUnresolvedMethod FunctionToIMethod (ProjectInformation pi, IUnresolvedTypeDefinition type, Function function, string[] contentLines)
 		{
 			var method = new DefaultUnresolvedMethod (type, function.Name);
-			method.Region = new DomRegion ((int)function.Line, 1, FindFunctionEnd (contentLines, (int)function.Line-1)+2, 1);
+			method.Region = new DomRegion ((int)function.Line, 1, FindFunctionEnd (contentLines, (int)function.Line - 1) + 2, 1);
 			
 			Match match;
 			bool abort = false;
@@ -217,8 +222,8 @@ namespace CBinding.Parser
 					abort = true;
 					break;
 				}
-				var typeRef = new DefaultUnresolvedTypeDefinition (string.Format ("{0}{1}{2}", match.Groups["type"].Value, match.Groups["subtype"].Value, match.Groups["array"].Value));
-				var p =  new DefaultUnresolvedParameter (typeRef, match.Groups["name"].Value);
+				var typeRef = new DefaultUnresolvedTypeDefinition (string.Format ("{0}{1}{2}", match.Groups ["type"].Value, match.Groups ["subtype"].Value, match.Groups ["array"].Value));
+				var p = new DefaultUnresolvedParameter (typeRef, match.Groups ["name"].Value);
 				parameters.Add (p);
 			}
 			if (!abort)

@@ -42,32 +42,37 @@ namespace CBinding.Parser
 		public string InstanceType {
 			get{ return instanceType; }
 		}
+
 		protected string instanceType;
-		
+
 		public bool IsPointer {
 			get{ return isPointer; }
 		}
+
 		protected bool isPointer;
-		
+
 		public Member (Tag tag, Project project, string ctags_output) : base (tag, project)
 		{
 			GetInstanceType (tag);
 			
-			if (GetClass (tag, ctags_output)) return;
-			if (GetStructure (tag, ctags_output)) return;
-			if (GetUnion (tag, ctags_output)) return;
+			if (GetClass (tag, ctags_output))
+				return;
+			if (GetStructure (tag, ctags_output))
+				return;
+			if (GetUnion (tag, ctags_output))
+				return;
 		}
-		
+
 		/// <summary>
 		/// Regex for deriving the type of a variable, 
 		/// and whether it's a pointer, 
 		/// from an expression, e.g. 
-		/// static Foo::bar<string> *blah = NULL;
+		/// static Foo::bar&lt;string> *blah = NULL;
 		/// </summary>
 		public static Regex InstanceTypeExpression = new Regex (
-		  @"^\s*((static|friend|const|mutable|extern|struct|union|\w*::|<[\w><:]*>)\s*)*(?<type>\w[\w\d]*)\s*(<.*>)?\s*(?<pointer>[*])?", 
-		  RegexOptions.Compiled);
-		
+			                                             @"^\s*((static|friend|const|mutable|extern|struct|union|\w*::|<[\w><:]*>)\s*)*(?<type>\w[\w\d]*)\s*(<.*>)?\s*(?<pointer>[*])?", 
+			                                             RegexOptions.Compiled);
+
 		/// <summary>
 		/// Populates an instance's instanceType and isPointer fields 
 		/// by matching its pattern against InstanceTypeExpression
@@ -80,12 +85,13 @@ namespace CBinding.Parser
 		/// Whether the regex was successfully matched
 		/// <see cref="System.Boolean"/>
 		/// </returns>
-		protected bool GetInstanceType (Tag tag) {
+		protected bool GetInstanceType (Tag tag)
+		{
 			try {
 				string declaration = null;
 				
 				using (StreamReader reader = new StreamReader (tag.File)) {
-					for (ulong i=0; i<tag.Line; ++i) {
+					for (ulong i = 0; i < tag.Line; ++i) {
 						declaration = reader.ReadLine ();
 					}
 				}
@@ -93,11 +99,12 @@ namespace CBinding.Parser
 				Match m = InstanceTypeExpression.Match (declaration);
 				
 				if (null != m) {
-					instanceType = m.Groups["type"].Value;
-					isPointer = m.Groups["pointer"].Success;
+					instanceType = m.Groups ["type"].Value;
+					isPointer = m.Groups ["pointer"].Success;
 					return true;
 				}
-			} catch { }
+			} catch {
+			}
 			
 			return false;
 		}

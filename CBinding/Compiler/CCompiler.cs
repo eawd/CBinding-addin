@@ -45,54 +45,54 @@ namespace CBinding
 	{
 		protected string compilerCommand;
 		protected string linkerCommand;
-		
+
 		public abstract string Name {
 			get;
 		}
-			
+
 		public abstract Language Language {
 			get;
 		}
-		
+
 		public string CompilerCommand {
 			get { return compilerCommand; }
 		}
-		
+
 		public abstract bool SupportsCcache {
 			get;
 		}
-		
+
 		public abstract bool SupportsPrecompiledHeaders {
 			get;
 		}
-		
+
 		public abstract string GetCompilerFlags (Project project, CProjectConfiguration configuration);
-		
+
 		public abstract string GetDefineFlags (Project project, CProjectConfiguration configuration);
-		
+
 		public abstract BuildResult Compile (
-		    Project project,
-		    ProjectFileCollection projectFiles,
-		    ProjectPackageCollection packages,
-		    CProjectConfiguration configuration,
-		    ProgressMonitor monitor);
-		
+			Project project,
+			ProjectFileCollection projectFiles,
+			ProjectPackageCollection packages,
+			CProjectConfiguration configuration,
+			ProgressMonitor monitor);
+
 		public abstract void Clean (ProjectFileCollection projectFiles, CProjectConfiguration configuration, ProgressMonitor monitor);
-		    
+
 		protected abstract void ParseCompilerOutput (string errorString, CompilerResults cr);
-		
+
 		protected abstract void ParseLinkerOutput (string errorString, CompilerResults cr);
-		
+
 		protected string GeneratePkgLinkerArgs (ProjectPackageCollection packages)
 		{
 			return GeneratePkgConfigArgs (packages, "--libs");
 		}
-		
+
 		protected string GeneratePkgCompilerArgs (ProjectPackageCollection packages)
 		{
 			return GeneratePkgConfigArgs (packages, "--cflags");
 		}
-	
+
 		protected static string GeneratePkgConfigArgs (ProjectPackageCollection packages, string pkgConfigArg)
 		{
 			if (packages == null || packages.Count < 1)
@@ -124,7 +124,7 @@ namespace CBinding
 				string line;
 				while ((line = proc.StandardOutput.ReadLine ()) != null)
 					output.WriteLine (line);
-			} catch (Exception ex) {
+			} catch (Exception) {
 				MessageService.ShowError ("You need to have pkg-config installed");
 			} finally {
 				proc.Close ();

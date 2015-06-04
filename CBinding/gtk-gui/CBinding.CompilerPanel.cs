@@ -5,7 +5,9 @@ namespace CBinding
 	public partial class CompilerPanel
 	{
 		private global::Gtk.Table table2;
+		
 		private global::Gtk.ComboBox compilerComboBox;
+		
 		private global::Gtk.CheckButton useCcacheCheckBox;
 
 		protected virtual void Build ()

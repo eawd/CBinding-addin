@@ -69,83 +69,85 @@ namespace CBinding
 			'.', ' ', '\t', '=', '*', '+', '-', '/', '%', ',', '&', '|',
 			'^', '{', '}', '[', ']', '(', ')', '\n', '!', '?', '<', '>'
 		};
-		
+
 		/// <summary>
 		/// A delegate for getting completion data 
 		/// </summary>
-		private delegate CompletionDataList GetMembersForExtension (CTextEditorExtension self, string completionExtension, string completionText);
-		
+		private delegate CompletionDataList GetMembersForExtension (CTextEditorExtension self,string completionExtension,string completionText);
+
 		/// <summary>
 		/// An associative array containing each completion-triggering extension 
 		/// and its respective callback
 		/// </summary>
 		private static KeyValuePair<string, GetMembersForExtension>[] completionExtensions = new KeyValuePair<string, GetMembersForExtension>[] {
-			new KeyValuePair<string, GetMembersForExtension>("::", GetItemMembers),
-			new KeyValuePair<string, GetMembersForExtension>("->", GetInstanceMembers),
-			new KeyValuePair<string, GetMembersForExtension>(".", GetInstanceMembers)
+			new KeyValuePair<string, GetMembersForExtension> ("::", GetItemMembers),
+			new KeyValuePair<string, GetMembersForExtension> ("->", GetInstanceMembers),
+			new KeyValuePair<string, GetMembersForExtension> (".", GetInstanceMembers)
 		};
-		
+
 
 		public override string CompletionLanguage {
 			get {
 				return "C/C++";
 			}
 		}
+
 		static bool IsOpenBrace (char c)
 		{
-			return c == '(' || c == '{' || c == '<' || c == '[';
+			return c == '(' || c == '{' ||  c == '<' ||  c == '[';
 		}
+
 		static bool IsCloseBrace (char c)
 		{
-			return c == ')' || c == '}' || c == '>' || c == ']';
+			return c == ')' || c == '}' ||  c == '>' ||  c == ']';
 		}
-		
+
 		static bool IsBrace (char c)
 		{
-			return IsOpenBrace  (c) || IsCloseBrace (c);
+			return IsOpenBrace (c) || IsCloseBrace (c);
 		}
-		
+
 		static int SearchMatchingBracket (IReadonlyTextDocument editor, int offset, char openBracket, char closingBracket, int direction)
 		{
-			bool isInString       = false;
-			bool isInChar         = false;	
+			bool isInString = false;
+			bool isInChar = false;	
 			bool isInBlockComment = false;
 			int depth = -1;
 			while (offset >= 0 && offset < editor.Length) {
 				char ch = editor.GetCharAt (offset);
 				switch (ch) {
-					case '/':
-						if (isInBlockComment) 
-							isInBlockComment = editor.GetCharAt (offset + direction) != '*';
-						if (!isInString && !isInChar && offset - direction < editor.Length) 
-							isInBlockComment = offset > 0 && editor.GetCharAt (offset - direction) == '*';
-						break;
-					case '"':
-						if (!isInChar && !isInBlockComment) 
-							isInString = !isInString;
-						break;
-					case '\'':
-						if (!isInString && !isInBlockComment) 
-							isInChar = !isInChar;
-						break;
-					default :
-						if (ch == closingBracket) {
-							if (!(isInString || isInChar || isInBlockComment)) 
-								--depth;
-						} else if (ch == openBracket) {
-							if (!(isInString || isInChar || isInBlockComment)) {
-								++depth;
-								if (depth == 0) 
-									return offset;
-							}
+				case '/':
+					if (isInBlockComment)
+						isInBlockComment = editor.GetCharAt (offset + direction) != '*';
+					if (!isInString && !isInChar && offset - direction < editor.Length)
+						isInBlockComment = offset > 0 && editor.GetCharAt (offset - direction) == '*';
+					break;
+				case '"':
+					if (!isInChar && !isInBlockComment)
+						isInString = !isInString;
+					break;
+				case '\'':
+					if (!isInString && !isInBlockComment)
+						isInChar = !isInChar;
+					break;
+				default :
+					if (ch == closingBracket) {
+						if (!(isInString || isInChar || isInBlockComment))
+							--depth;
+					} else if (ch == openBracket) {
+						if (!(isInString || isInChar || isInBlockComment)) {
+							++depth;
+							if (depth == 0)
+								return offset;
 						}
-						break;
+					}
+					break;
 				}
 				offset += direction;
 			}
 			return -1;
 		}
-		
+
 		static int GetClosingBraceForLine (IReadonlyTextDocument editor, IDocumentLine line, out int openingLine)
 		{
 			int offset = SearchMatchingBracket (editor, line.Offset, '{', '}', -1);
@@ -157,7 +159,7 @@ namespace CBinding
 			openingLine = editor.OffsetToLineNumber (offset);
 			return offset;
 		}
-		
+
 		public override bool KeyPress (KeyDescriptor descriptor)
 		{
 			var line = Editor.GetLine (Editor.CaretLine);
@@ -165,64 +167,58 @@ namespace CBinding
 			int lineCursorIndex = Math.Min (lineText.Length, Editor.CaretColumn);
 			
 			// Smart Indentation
-			if (Editor.Options.IndentStyle == IndentStyle.Smart)
-			{
+			if (Editor.Options.IndentStyle == IndentStyle.Smart) {
 				if (descriptor.KeyChar == '}') {
 					// Only indent if the brace is preceeded by whitespace.
-					if(AllWhiteSpace(lineText.Substring(0, lineCursorIndex))) {
+					if (AllWhiteSpace (lineText.Substring (0, lineCursorIndex))) {
 						int braceOpeningLine;
-						if(GetClosingBraceForLine(Editor, line, out braceOpeningLine) >= 0)
-						{
-							Editor.ReplaceText (line.Offset, line.Length, GetIndent(Editor, braceOpeningLine, 0) + "}" + lineText.Substring(lineCursorIndex));
+						if (GetClosingBraceForLine (Editor, line, out braceOpeningLine) >= 0) {
+							Editor.ReplaceText (line.Offset, line.Length, GetIndent (Editor, braceOpeningLine, 0) + "}" + lineText.Substring (lineCursorIndex));
 							return false;
 						}
 					}
 				} else {
-					switch(descriptor.SpecialKey)
-					{
-						case SpecialKey.Return:
+					switch (descriptor.SpecialKey) {
+					case SpecialKey.Return:
 							// Calculate additional indentation, if any.
-							char finalChar = '\0';
-							char nextChar = '\0';
-							string indent = String.Empty;
-							if (!String.IsNullOrEmpty (Editor.SelectedText)) {
-								int cursorPos = Editor.SelectionRange.Offset;
+						char finalChar = '\0';
+						char nextChar = '\0';
+						string indent = String.Empty;
+						if (!String.IsNullOrEmpty (Editor.SelectedText)) {
+							int cursorPos = Editor.SelectionRange.Offset;
 
-								Editor.RemoveText (Editor.SelectionRange);
+							Editor.RemoveText (Editor.SelectionRange);
 							
-								Editor.CaretOffset = cursorPos;
+							Editor.CaretOffset = cursorPos;
 								
-								lineText = Editor.GetLineText (Editor.CaretLine);
-								lineCursorIndex = Editor.CaretColumn;
-	//							System.Console.WriteLine(TextEditorData.Caret.Offset);
-							}
-							if(lineText.Length > 0)
-							{
-								if(lineCursorIndex > 0)
-									finalChar = lineText[Math.Min(lineCursorIndex, lineText.Length) - 1];
+							lineText = Editor.GetLineText (Editor.CaretLine);
+							lineCursorIndex = Editor.CaretColumn;
+							//							System.Console.WriteLine(TextEditorData.Caret.Offset);
+						}
+						if (lineText.Length > 0) {
+							if (lineCursorIndex > 0)
+								finalChar = lineText [Math.Min (lineCursorIndex, lineText.Length) - 1];
 								
-								if(lineCursorIndex < lineText.Length)
-									nextChar = lineText[lineCursorIndex];
+							if (lineCursorIndex < lineText.Length)
+								nextChar = lineText [lineCursorIndex];
 	
-								if(finalChar == '{')
-									indent = Editor.Options.GetIndentationString ();
-							}
+							if (finalChar == '{')
+								indent = Editor.Options.GetIndentationString ();
+						}
 	
 							// If the next character is an closing brace, indent it appropriately.
-							if(IsBrace(nextChar) && !IsOpenBrace(nextChar))
-							{
-								int openingLine;
-								if(GetClosingBraceForLine (Editor, line, out openingLine) >= 0)
-								{
-									Editor.InsertAtCaret (Editor.EolMarker + GetIndent(Editor, openingLine, 0));
-									return false;
-								}
+						if (IsBrace (nextChar) && !IsOpenBrace (nextChar)) {
+							int openingLine;
+							if (GetClosingBraceForLine (Editor, line, out openingLine) >= 0) {
+								Editor.InsertAtCaret (Editor.EolMarker + GetIndent (Editor, openingLine, 0));
+								return false;
 							}
+						}
 						
 							// Default indentation method
-							Editor.InsertAtCaret (Editor.EolMarker + indent + GetIndent(Editor, Editor.OffsetToLineNumber (line.Offset), lineCursorIndex));
+						Editor.InsertAtCaret (Editor.EolMarker + indent + GetIndent (Editor, Editor.OffsetToLineNumber (line.Offset), lineCursorIndex));
 							
-							return false;
+						return false;
 						
 					}
 				}
@@ -233,11 +229,11 @@ namespace CBinding
 
 		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, char completionChar, CancellationToken token = default(CancellationToken))
 		{
-			string lineText = Editor.GetLineText (completionContext.TriggerLine).TrimEnd();
+			string lineText = Editor.GetLineText (completionContext.TriggerLine).TrimEnd ();
 			
 			// If the line ends with a matched extension, invoke its handler
 			foreach (KeyValuePair<string, GetMembersForExtension> pair in completionExtensions) {
-				if (lineText.EndsWith(pair.Key)) {
+				if (lineText.EndsWith (pair.Key)) {
 					lineText = lineText.Substring (0, lineText.Length - pair.Key.Length);
 					
 					int nameStart = lineText.LastIndexOfAny (allowedCharsMinusColon) + 1;
@@ -260,46 +256,46 @@ namespace CBinding
 			return null;
 		}
 		
-//		public override ICompletionDataList HandleCodeCompletion (
-//		    CodeCompletionContext completionContext, char completionChar)
-//		{
-//			int triggerWordLength = 0;
-//			return HandleCodeCompletion (completionContext, completionChar, ref triggerWordLength);
-//			
-//			string lineText = Editor.GetLineText (completionContext.TriggerLine).TrimEnd();
-//			
-//			// If the line ends with a matched extension, invoke its handler
-//			foreach (KeyValuePair<string, GetMembersForExtension> pair in completionExtensions) {
-//				if (lineText.EndsWith(pair.Key)) {
-//					lineText = lineText.Substring (0, lineText.Length - pair.Key.Length);
-//					
-//					int nameStart = lineText.LastIndexOfAny (allowedCharsMinusColon) + 1;
-//					string itemName = lineText.Substring (nameStart).Trim ();
-//					
-//					if (string.IsNullOrEmpty (itemName))
-//						return null;
-//					
-//					return pair.Value (this, pair.Key, itemName);
-//				}
-//			}
-//			
-//			return null;
-//		}
+		//		public override ICompletionDataList HandleCodeCompletion (
+		//		    CodeCompletionContext completionContext, char completionChar)
+		//		{
+		//			int triggerWordLength = 0;
+		//			return HandleCodeCompletion (completionContext, completionChar, ref triggerWordLength);
+		//
+		//			string lineText = Editor.GetLineText (completionContext.TriggerLine).TrimEnd();
+		//
+		//			// If the line ends with a matched extension, invoke its handler
+		//			foreach (KeyValuePair<string, GetMembersForExtension> pair in completionExtensions) {
+		//				if (lineText.EndsWith(pair.Key)) {
+		//					lineText = lineText.Substring (0, lineText.Length - pair.Key.Length);
+		//
+		//					int nameStart = lineText.LastIndexOfAny (allowedCharsMinusColon) + 1;
+		//					string itemName = lineText.Substring (nameStart).Trim ();
+		//
+		//					if (string.IsNullOrEmpty (itemName))
+		//						return null;
+		//
+		//					return pair.Value (this, pair.Key, itemName);
+		//				}
+		//			}
+		//
+		//			return null;
+		//		}
 		
 		public override Task<ICompletionDataList> CodeCompletionCommand (
-		    CodeCompletionContext completionContext)
+			CodeCompletionContext completionContext)
 		{
 			int pos = completionContext.TriggerOffset;
-			string lineText = Editor.GetLineText (Editor.CaretLine).Trim();
+			string lineText = Editor.GetLineText (Editor.CaretLine).Trim ();
 			
 			foreach (KeyValuePair<string, GetMembersForExtension> pair in completionExtensions) {
-				if (lineText.EndsWith(pair.Key))
+				if (lineText.EndsWith (pair.Key))
 					return HandleCodeCompletionAsync (completionContext, Editor.GetCharAt (pos));
 			}
 
 			return Task.FromResult<ICompletionDataList> (GlobalComplete ());
 		}
-		
+
 		/// <summary>
 		/// Gets contained members for a namespace or class
 		/// </summary>
@@ -321,10 +317,11 @@ namespace CBinding
 		/// Completion data for the namespace or class
 		/// <see cref="CompletionDataList"/>
 		/// </returns>
-		private static CompletionDataList GetItemMembers (CTextEditorExtension self, string completionExtension, string completionText) {
+		private static CompletionDataList GetItemMembers (CTextEditorExtension self, string completionExtension, string completionText)
+		{
 			return self.GetMembersOfItem (completionText);
 		}
-		
+
 		/// <summary>
 		/// Gets contained members for an instance
 		/// </summary>
@@ -346,10 +343,11 @@ namespace CBinding
 		/// Completion data for the instance
 		/// <see cref="CompletionDataList"/>
 		/// </returns>
-		private static CompletionDataList GetInstanceMembers (CTextEditorExtension self, string completionExtension, string completionText) {
+		private static CompletionDataList GetInstanceMembers (CTextEditorExtension self, string completionExtension, string completionText)
+		{
 			return self.GetMembersOfInstance (completionText, ("->" == completionExtension));
 		}
-		
+
 		private CompletionDataList GetMembersOfItem (string itemFullName)
 		{
 			CProject project = DocumentContext.Project as CProject;
@@ -395,7 +393,7 @@ namespace CBinding
 			
 			return list;
 		}
-		
+
 		/// <summary>
 		/// Adds completion data for children to a list
 		/// </summary>
@@ -405,12 +403,13 @@ namespace CBinding
 		/// </param>
 		/// <param name="items">
 		/// A list of items to search
-		/// <see cref="IEnumerable"/>
+		/// <see cref="IEnumerable&lt;LanguageItem>"/>
 		/// </param>
 		/// <param name="parent">
 		/// The parent that will be matched
 		/// </param>
-		public static void AddItemsWithParent(CompletionDataList list, IEnumerable<LanguageItem> items, LanguageItem parent) {
+		public static void AddItemsWithParent (CompletionDataList list, IEnumerable<LanguageItem> items, LanguageItem parent)
+		{
 			foreach (LanguageItem li in items) {
 				if (li.Parent != null && li.Parent.Equals (parent))
 					list.Add (new CompletionData (li));
@@ -450,7 +449,7 @@ namespace CBinding
 			bool in_project = false;
 			
 			// Find the typename of the instance
-			foreach (Member li in info.Members ) {
+			foreach (Member li in info.Members) {
 				if (instanceName == li.Name && li.IsPointer == isPointer) {
 					container = li.InstanceType;
 					in_project = true;
@@ -472,7 +471,7 @@ namespace CBinding
 			
 			if (null == container) {
 				// Search locals
-				foreach (Local li in info.Locals ) {
+				foreach (Local li in info.Locals) {
 					if (instanceName == li.Name && li.IsPointer == isPointer && currentFileName == li.File) {
 						container = li.InstanceType;
 						in_project = true;
@@ -497,7 +496,7 @@ namespace CBinding
 			
 			return list;
 		}
-		
+
 		/// <summary>
 		/// Adds completion data for children to a list
 		/// </summary>
@@ -507,17 +506,18 @@ namespace CBinding
 		/// </param>
 		/// <param name="items">
 		/// A list of items to search
-		/// <see cref="IEnumerable"/>
+		/// <see cref="IEnumerable&lt;LanguageItem>"/>
 		/// </param>
 		/// <param name="parentName">
 		/// The name of the parent that will be matched
-		/// <see cref="System.String"/>
+		/// <see cref="string[]"/>
 		/// </param>
-		public static void AddMembersWithParent(CompletionDataList list, IEnumerable<LanguageItem> items, string parentName) {
-				foreach (LanguageItem li in items) {
-					if (li.Parent != null && li.Parent.Name.EndsWith (parentName))
-						list.Add (new CompletionData (li));
-				}
+		public static void AddMembersWithParent (CompletionDataList list, IEnumerable<LanguageItem> items, string parentName)
+		{
+			foreach (LanguageItem li in items) {
+				if (li.Parent != null && li.Parent.Name.EndsWith (parentName))
+					list.Add (new CompletionData (li));
+			}
 		}
 
 		private CompletionDataList GlobalComplete ()
@@ -568,7 +568,7 @@ namespace CBinding
 			
 			return list;
 		}
-		
+
 		public override Task<MonoDevelop.Ide.CodeCompletion.ParameterHintingResult> HandleParameterCompletionAsync (CodeCompletionContext completionContext, char completionChar, CancellationToken token = default(CancellationToken))
 		{
 			if (completionChar != '(')
@@ -582,7 +582,7 @@ namespace CBinding
 			ProjectInformation info = ProjectInformationManager.Instance.Get (project);
 			string lineText = Editor.GetLineText (Editor.CaretLine).TrimEnd ();
 			if (lineText.EndsWith (completionChar.ToString (), StringComparison.Ordinal))
-				lineText = lineText.Remove (lineText.Length-1).TrimEnd ();
+				lineText = lineText.Remove (lineText.Length - 1).TrimEnd ();
 			
 			int nameStart = lineText.LastIndexOfAny (allowedChars);
 
@@ -593,9 +593,9 @@ namespace CBinding
 			if (string.IsNullOrEmpty (functionName))
 				return Task.FromResult<MonoDevelop.Ide.CodeCompletion.ParameterHintingResult> (null);
 
-			return Task.FromResult ((MonoDevelop.Ide.CodeCompletion.ParameterHintingResult) new ParameterDataProvider (nameStart, Editor, info, functionName));
+			return Task.FromResult ((MonoDevelop.Ide.CodeCompletion.ParameterHintingResult)new ParameterDataProvider (nameStart, Editor, info, functionName));
 		}
-		
+
 		private bool AllWhiteSpace (string lineText)
 		{
 			// We will almost definately need a faster method than this
@@ -610,8 +610,8 @@ namespace CBinding
 		private string GetIndent (IReadonlyTextDocument d, int lineNumber, int terminateIndex)
 		{
 			string lineText = d.GetLineText (lineNumber);
-			if(terminateIndex > 0)
-				lineText = terminateIndex < lineText.Length ? lineText.Substring(0, terminateIndex) : lineText;
+			if (terminateIndex > 0)
+				lineText = terminateIndex < lineText.Length ? lineText.Substring (0, terminateIndex) : lineText;
 			
 			StringBuilder whitespaces = new StringBuilder ();
 			
@@ -623,7 +623,7 @@ namespace CBinding
 			
 			return whitespaces.ToString ();
 		}
-		
+
 		[CommandHandler (MonoDevelop.DesignerSupport.Commands.SwitchBetweenRelatedFiles)]
 		protected void Run ()
 		{
@@ -634,18 +634,18 @@ namespace CBinding
 					MonoDevelop.Ide.IdeApp.Workbench.OpenDocument (match, true);
 			}
 		}
-		
+
 		[CommandUpdateHandler (MonoDevelop.DesignerSupport.Commands.SwitchBetweenRelatedFiles)]
 		protected void Update (CommandInfo info)
 		{
 			var cp = this.DocumentContext.Project as CProject;
 			info.Visible = info.Visible = cp != null && cp.MatchingFile (this.DocumentContext.Name) != null;
 		}
-		
+
 		#region IPathedDocument implementation
-		
+
 		public event EventHandler<DocumentPathChangedEventArgs> PathChanged;
-		
+
 		public Gtk.Widget CreatePathWidget (int index)
 		{
 			PathEntry[] path = CurrentPath;
@@ -653,7 +653,7 @@ namespace CBinding
 				return null;
 			}
 			
-			object tag = path[index].Tag;
+			object tag = path [index].Tag;
 			DropDownBoxListWindow.IListDataProvider provider = null;
 			if (tag is ParsedDocument) {
 				provider = new CompilationUnitDataProvider (Editor, DocumentContext);
@@ -671,19 +671,19 @@ namespace CBinding
 			get;
 			private set;
 		}
-		
+
 		protected virtual void OnPathChanged (DocumentPathChangedEventArgs args)
 		{
 			if (PathChanged != null)
 				PathChanged (this, args);
 		}
-		
+
 		#endregion
-		
+
 		// Yoinked from C# binding
 		void UpdatePath (object sender, EventArgs e)
 		{
-	/*		var unit = Document.ParsedDocument;
+			/*		var unit = Document.ParsedDocument;
 			if (unit == null)
 				return;
 			
@@ -719,7 +719,7 @@ namespace CBinding
 			CurrentPath = result.ToArray ();
 			OnPathChanged (new DocumentPathChangedEventArgs (prev));*/
 		}
-		
+
 		protected override void Initialize ()
 		{
 			base.Initialize ();
@@ -740,7 +740,7 @@ namespace CBinding
 
 			base.Dispose ();
 		}
-		
+
 		/// <summary>
 		/// Move the completion trigger offset to the beginning of the current token
 		/// </summary>
@@ -753,10 +753,12 @@ namespace CBinding
 			
 			for (;
 				1 < i && char.IsLetterOrDigit (Editor.GetCharAt (i));
-			     --i, ++accumulator);
-			completionContext.TriggerOffset = i-1;
-			return accumulator+1;
-		}// ResetTriggerOffset
+			     --i, ++accumulator)
+				;
+			completionContext.TriggerOffset = i - 1;
+			return accumulator + 1;
+		}
+		// ResetTriggerOffset
 
 		[CommandHandler (MonoDevelop.Refactoring.RefactoryCommands.GotoDeclaration)]
 		public void GotoDeclaration ()
@@ -765,14 +767,14 @@ namespace CBinding
 			if (item != null)
 				IdeApp.Workbench.OpenDocument ((FilePath)item.File, (int)item.Line, 1);
 		}
-		
+
 		[CommandUpdateHandler (MonoDevelop.Refactoring.RefactoryCommands.GotoDeclaration)]
 		public void CanGotoDeclaration (CommandInfo item)
 		{
 			item.Visible = (GetLanguageItemAt (Editor.CaretLocation) != null);
 			item.Bypass = !item.Visible;
 		}
-		
+
 		private LanguageItem GetLanguageItemAt (DocumentLocation location)
 		{
 			CProject project = DocumentContext.Project as CProject;
@@ -784,10 +786,10 @@ namespace CBinding
 			
 			return null;
 		}
-		
+
 		private string GetTokenAt (DocumentLocation location)
 		{
-			int lineOffset = location.Column-1;
+			int lineOffset = location.Column - 1;
 			string line = Editor.GetLineText (location.Line);
 			if (line.Length == 0)
 				return "";
@@ -795,11 +797,12 @@ namespace CBinding
 				lineOffset = line.Length - 1;
 			int first = line.LastIndexOfAny (allowedChars, lineOffset) + 1;
 			int last = line.IndexOfAny (allowedChars, lineOffset);
-			if (last < 0) last = line.Length - 1;
+			if (last < 0)
+				last = line.Length - 1;
 			string token = string.Empty;
 			    
 			if (first >= 0 && first < last && last < line.Length) {
-				token = line.Substring (first, last-first);
+				token = line.Substring (first, last - first);
 			}
 			return token.Trim ();
 		}

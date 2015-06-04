@@ -251,7 +251,8 @@ namespace CBinding
 			libs = conf.libs;
 			source_directory_path = conf.source_directory_path;
 			use_ccache = conf.use_ccache;
-			
+			cVersion = conf.cVersion;
+			customVersionString = conf.customVersionString;
 			warning_level = conf.warning_level;
 			warnings_as_errors = conf.warnings_as_errors;
 			optimization = conf.optimization;
