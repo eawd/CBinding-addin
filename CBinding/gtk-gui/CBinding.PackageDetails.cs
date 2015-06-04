@@ -299,7 +299,7 @@ namespace CBinding
 				this.Child.ShowAll ();
 			}
 			this.DefaultWidth = 608;
-			this.DefaultHeight = 518;
+			this.DefaultHeight = 528;
 			this.Hide ();
 			this.buttonOk.Clicked += new global::System.EventHandler (this.OnButtonOkClicked);
 		}

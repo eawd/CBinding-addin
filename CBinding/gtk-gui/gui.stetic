@@ -13,7 +13,7 @@
     <widget-library name="MonoDevelop.Refactoring, Version=2.6.0.0, Culture=neutral" />
     <widget-library name="../build/bin/Debug/MonoDevelop.CBinding.dll" internal="true" />
   </import>
-  <widget class="Gtk.Bin" id="CBinding.CodeGenerationPanel" design-size="611 396">
+  <widget class="Gtk.Bin" id="CBinding.CodeGenerationPanel" design-size="611 407">
     <property name="MemberName" />
     <child>
       <widget class="Gtk.Notebook" id="notebook1">
@@ -27,11 +27,30 @@
             <child>
               <widget class="Gtk.Table" id="table1">
                 <property name="MemberName" />
-                <property name="NRows">3</property>
+                <property name="NRows">4</property>
                 <property name="NColumns">2</property>
                 <property name="RowSpacing">5</property>
                 <property name="ColumnSpacing">5</property>
                 <property name="BorderWidth">2</property>
+                <child>
+                  <widget class="Gtk.Label" id="label13">
+                    <property name="MemberName" />
+                    <property name="Xpad">10</property>
+                    <property name="Xalign">0</property>
+                    <property name="LabelProp" translatable="yes">C/C++ version:</property>
+                  </widget>
+                  <packing>
+                    <property name="AutoSize">True</property>
+                    <property name="XOptions">Fill</property>
+                    <property name="YOptions">Fill</property>
+                    <property name="XExpand">False</property>
+                    <property name="XFill">True</property>
+                    <property name="XShrink">False</property>
+                    <property name="YExpand">False</property>
+                    <property name="YFill">True</property>
+                    <property name="YShrink">False</property>
+                  </packing>
+                </child>
                 <child>
                   <widget class="Gtk.Label" id="label4">
                     <property name="MemberName" />
@@ -40,6 +59,8 @@
                     <property name="LabelProp" translatable="yes">Warning Level:</property>
                   </widget>
                   <packing>
+                    <property name="TopAttach">1</property>
+                    <property name="BottomAttach">2</property>
                     <property name="AutoSize">True</property>
                     <property name="XOptions">Fill</property>
                     <property name="YOptions">Fill</property>
@@ -59,8 +80,8 @@
                     <property name="LabelProp" translatable="yes">Optimization Level:</property>
                   </widget>
                   <packing>
-                    <property name="TopAttach">1</property>
-                    <property name="BottomAttach">2</property>
+                    <property name="TopAttach">2</property>
+                    <property name="BottomAttach">3</property>
                     <property name="AutoSize">True</property>
                     <property name="XOptions">Fill</property>
                     <property name="YOptions">Fill</property>
@@ -80,8 +101,8 @@
                     <property name="LabelProp" translatable="yes">Target:</property>
                   </widget>
                   <packing>
-                    <property name="TopAttach">2</property>
-                    <property name="BottomAttach">3</property>
+                    <property name="TopAttach">3</property>
+                    <property name="BottomAttach">4</property>
                     <property name="AutoSize">True</property>
                     <property name="XOptions">Fill</property>
                     <property name="YOptions">Fill</property>
@@ -104,8 +125,8 @@
                     <property name="Numeric">True</property>
                   </widget>
                   <packing>
-                    <property name="TopAttach">1</property>
-                    <property name="BottomAttach">2</property>
+                    <property name="TopAttach">2</property>
+                    <property name="BottomAttach">3</property>
                     <property name="LeftAttach">1</property>
                     <property name="RightAttach">2</property>
                     <property name="AutoSize">True</property>
@@ -128,8 +149,35 @@ Static Library
 Shared Object</property>
                   </widget>
                   <packing>
-                    <property name="TopAttach">2</property>
-                    <property name="BottomAttach">3</property>
+                    <property name="TopAttach">3</property>
+                    <property name="BottomAttach">4</property>
+                    <property name="LeftAttach">1</property>
+                    <property name="RightAttach">2</property>
+                    <property name="AutoSize">True</property>
+                    <property name="XOptions">Fill</property>
+                    <property name="YOptions">Fill</property>
+                    <property name="XExpand">False</property>
+                    <property name="XFill">True</property>
+                    <property name="XShrink">False</property>
+                    <property name="YExpand">False</property>
+                    <property name="YFill">True</property>
+                    <property name="YShrink">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="Gtk.ComboBox" id="targetComboBox1">
+                    <property name="MemberName" />
+                    <property name="IsTextCombo">True</property>
+                    <property name="Items" translatable="yes">Defined in Extra Compiler Options
+ISO C
+C99
+C11
+ISO c++
+C++98
+C++11</property>
+                    <property name="Active">0</property>
+                  </widget>
+                  <packing>
                     <property name="LeftAttach">1</property>
                     <property name="RightAttach">2</property>
                     <property name="AutoSize">True</property>
@@ -152,7 +200,6 @@ Shared Object</property>
                         <property name="MemberName" />
                         <property name="CanFocus">True</property>
                         <property name="Label" translatable="yes">no warnings</property>
-                        <property name="Active">True</property>
                         <property name="DrawIndicator">True</property>
                         <property name="HasLabel">True</property>
                         <property name="UseUnderline">True</property>
@@ -217,6 +264,8 @@ Shared Object</property>
                     </child>
                   </widget>
                   <packing>
+                    <property name="TopAttach">1</property>
+                    <property name="BottomAttach">2</property>
                     <property name="LeftAttach">1</property>
                     <property name="RightAttach">2</property>
                     <property name="AutoSize">True</property>
@@ -1838,7 +1887,7 @@ Example:
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Dialog" id="CBinding.PackageDetails" design-size="608 518">
+  <widget class="Gtk.Dialog" id="CBinding.PackageDetails" design-size="608 528">
     <property name="MemberName" />
     <property name="Visible">False</property>
     <property name="Title" translatable="yes">Package Details</property>

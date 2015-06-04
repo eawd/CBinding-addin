@@ -184,17 +184,13 @@
     <Compile Include="Compiler\GppCompiler.cs" />
     <Compile Include="Compiler\GNUCompiler.cs" />
     <Compile Include="Gui\CompilerPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.CodeGenerationPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.CompilerPanel.cs" />
     <Compile Include="Compiler\ICompiler.cs" />
     <Compile Include="Project\ProjectPackageCollection.cs" />
     <Compile Include="Gui\EditPackagesDialog.cs" />
-    <Compile Include="gtk-gui\CBinding.EditPackagesDialog.cs" />
     <Compile Include="CLanguageBinding.cs" />
     <Compile Include="Project\Package.cs" />
     <Compile Include="Project\ProjectPackageEventArgs.cs" />
     <Compile Include="Gui\OutputOptionsPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.OutputOptionsPanel.cs" />
     <Compile Include="Project\CProjectServiceExtension.cs" />
     <Compile Include="Navigation\ProjectNodeBuilderExtension.cs" />
     <Compile Include="Navigation\NamespaceNodeBuilder.cs" />
@@ -237,10 +233,8 @@
     <Compile Include="Parser\Variable.cs" />
     <Compile Include="CppLanguageBinding.cs" />
     <Compile Include="Gui\GeneralOptionsPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.GeneralOptionsPanel.cs" />
     <Compile Include="Parser\Local.cs" />
     <Compile Include="Gui\PackageDetails.cs" />
-    <Compile Include="gtk-gui\CBinding.PackageDetails.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Parser\CDocumentParser.cs" />
     <Compile Include="ObjCLanguageBinding.cs" />
@@ -254,6 +248,12 @@
     <Compile Include="Compiler\ClangCCompiler.cs" />
     <Compile Include="Compiler\ClangCXXCompiler.cs" />
     <Compile Include="CLang\CLangManager.cs" />
+    <Compile Include="gtk-gui\CBinding.CodeGenerationPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.CompilerPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.EditPackagesDialog.cs" />
+    <Compile Include="gtk-gui\CBinding.GeneralOptionsPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.OutputOptionsPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.PackageDetails.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -265,5 +265,6 @@
   </ProjectExtensions>
   <ItemGroup>
     <Folder Include="CLang\" />
+    <Folder Include="gtk-gui\" />
   </ItemGroup>
 </Project>
