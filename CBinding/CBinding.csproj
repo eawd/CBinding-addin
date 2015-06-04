@@ -52,7 +52,6 @@
       <Package>gtk-sharp-2.0</Package>
     </Reference>
     <Reference Include="atk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
-      <SpecificVersion>False</SpecificVersion>
       <Package>gtk-sharp-2.0</Package>
     </Reference>
     <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
@@ -65,12 +64,12 @@
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="MonoDevelop.Core, Version=2.6.0.0, Culture=neutral">
-      <Package>monodevelop</Package>
       <SpecificVersion>False</SpecificVersion>
+      <Package>monodevelop</Package>
     </Reference>
     <Reference Include="MonoDevelop.Ide, Version=2.6.0.0, Culture=neutral">
-      <Package>monodevelop</Package>
       <SpecificVersion>False</SpecificVersion>
+      <Package>monodevelop</Package>
     </Reference>
     <Reference Include="MonoDevelop.Deployment, Version=2.6.0.0, Culture=neutral">
       <Package>monodevelop-core-addins</Package>
