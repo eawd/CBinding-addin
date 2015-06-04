@@ -442,20 +442,34 @@ namespace CBinding
 			}
 		}
 
-		protected override void OnFileChangedInProject (ProjectFileEventArgs e)
+		protected override void OnFileChangedInProject (ProjectFileEventArgs args)
 		{
-			base.OnFileChangedInProject (e);
-			
-			foreach (ProjectFileEventInfo fe in e)
-				CLangManager.Instance.UpdateTranslationUnit (this, fe.ProjectFile.Name);
+			base.OnFileChangedInProject (args);
+
+			foreach (ProjectFileEventInfo e in args) {
+				if (!Loading && !IsCompileable (e.ProjectFile.Name) &&
+				    e.ProjectFile.BuildAction == BuildAction.Compile) {
+					e.ProjectFile.BuildAction = BuildAction.None;
+				}
+
+				if (e.ProjectFile.BuildAction == BuildAction.Compile)
+					CLangManager.Instance.UpdateTranslationUnit (this, e.ProjectFile.Name);
+			}
 		}
 
-		protected override void OnFileRemovedFromProject (ProjectFileEventArgs e)
+		protected override void OnFileRemovedFromProject (ProjectFileEventArgs args)
 		{
-			base.OnFileRemovedFromProject (e);
+			base.OnFileRemovedFromProject (args);
 			
-			foreach (ProjectFileEventInfo fe in e)
-				CLangManager.Instance.RemoveTranslationUnit (this, fe.ProjectFile.Name);
+			foreach (ProjectFileEventInfo e in args) {
+				if (!Loading && !IsCompileable (e.ProjectFile.Name) &&
+				    e.ProjectFile.BuildAction == BuildAction.Compile) {
+					e.ProjectFile.BuildAction = BuildAction.None;
+				}
+
+				if (e.ProjectFile.BuildAction == BuildAction.Compile)
+					CLangManager.Instance.RemoveTranslationUnit (this, e.ProjectFile.Name);
+			}
 		}
 
 		

@@ -50,13 +50,13 @@ namespace CBinding
 		bool appsChecked;
 		bool compilerFound;
 		bool linkerFound;
-		
+
 		public override BuildResult Compile (
-		    Project project,
-		    ProjectFileCollection projectFiles,
-		    ProjectPackageCollection packages,
-		    CProjectConfiguration configuration,
-		    IProgressMonitor monitor)
+			Project project,
+			ProjectFileCollection projectFiles,
+			ProjectPackageCollection packages,
+			CProjectConfiguration configuration,
+			IProgressMonitor monitor)
 		{
 			if (!appsChecked) {
 				appsChecked = true;
@@ -81,7 +81,7 @@ namespace CBinding
 			string compilerArgs = GetCompilerFlags (project, configuration) + " " + GeneratePkgCompilerArgs (packages);
 			
 			string outputName = Path.Combine (configuration.OutputDirectory,
-			                                  configuration.CompiledOutputName);
+				                    configuration.CompiledOutputName);
 			
 			// Precompile header files and place them in prec/<config_name>/
 			if (configuration.PrecompileHeaders) {
@@ -102,7 +102,8 @@ namespace CBinding
 			//compile source to object files
 			monitor.BeginTask (GettextCatalog.GetString ("Compiling source to object files"), 1);
 			foreach (ProjectFile f in projectFiles) {
-				if (!success) break;
+				if (!success)
+					break;
 				if (f.Subtype == Subtype.Directory || f.BuildAction != BuildAction.Compile || CProject.IsHeaderFile (f.FilePath))
 					continue;
 				
@@ -114,8 +115,7 @@ namespace CBinding
 			monitor.EndTask ();
 
 			if (success) {
-				switch (configuration.CompileTarget)
-				{
+				switch (configuration.CompileTarget) {
 				case CBinding.CompileTarget.Bin:
 					MakeBin (project, projectFiles, configuration, packages, cr, monitor, outputName);
 					break;
@@ -130,23 +130,93 @@ namespace CBinding
 			
 			return new BuildResult (cr, "");
 		}
-		
+
 		public override bool SupportsCcache {
 			get { return true; }
 		}
-		
+
 		public override bool SupportsPrecompiledHeaders {
 			get { return true; }
 		}
-		
-		Dictionary<string, string> GetStringTags (Project project)
+
+		protected Dictionary<string, string> GetStringTags (Project project)
 		{
 			Dictionary<string, string> result = new Dictionary<string, string> (StringComparer.InvariantCultureIgnoreCase);
-			result["PROJECTDIR"] = project.BaseDirectory;
-			result["PROJECTFILENAME"] = project.FileName;
+			result ["PROJECTDIR"] = project.BaseDirectory;
+			result ["PROJECTFILENAME"] = project.FileName;
 			return result;
 		}
-		
+
+		public string[] GetCompilerFlagsAsArray (Project project, CProjectConfiguration configuration)
+		{
+			List<string> args = new List<string> ();
+
+			if (configuration.DebugMode)
+				args.Add ("-g");
+
+			if (configuration.CompileTarget == CBinding.CompileTarget.SharedLibrary)
+				args.Add ("-fPIC");
+
+			switch (configuration.WarningLevel) {
+			case WarningLevel.None:
+				args.Add ("-w");
+				break;
+			case WarningLevel.Normal:
+				break;
+			case WarningLevel.All:
+				args.Add ("-Wall");
+				break;
+			}
+			switch (configuration.CVersion) {
+			case CVersion.ISOC:
+				args.Add ("-std=c90");
+				break;
+			case CVersion.C99:
+				args.Add ("-std=c99");
+				break;
+			case CVersion.C11:
+				args.Add ("-std=c11");
+				break;
+			case CVersion.ISOCPP:		
+				args.Add ("-std=c++99");
+				break;
+			case CVersion.CPP03:
+				args.Add ("-std=c++03");
+				break;
+			case CVersion.CPP11:
+				args.Add ("-std=c++11");
+				break;
+			case CVersion.CustomVersionString:
+				args.Add (configuration.CustomVersionString);
+				break;
+			}
+
+			if (configuration.WarningsAsErrors)
+				args.Add ("-Werror");
+
+			args.Add ("-O" + configuration.OptimizationLevel);
+
+			if (configuration.ExtraCompilerArguments != null && configuration.ExtraCompilerArguments.Length > 0) {
+				string extraCompilerArgs = ExpandBacktickedParameters (configuration.ExtraCompilerArguments.Replace ('\n', ' '));
+				args.Add (extraCompilerArgs);
+			}
+
+			if (configuration.DefineSymbols != null && configuration.DefineSymbols.Length > 0)
+				args.Add (ProcessDefineSymbols (configuration.DefineSymbols));
+
+			if (configuration.Includes != null)
+				foreach (string inc in configuration.Includes)
+					args.Add ("-I\"" + StringParserService.Parse (inc, GetStringTags (project)) + "\"");
+
+			if (configuration.PrecompileHeaders) {
+				string precdir = Path.Combine (configuration.IntermediateOutputDirectory, "prec");
+				precdir = Path.Combine (precdir, configuration.Id);
+				args.Add ("-I\"" + precdir + "\"");
+			}
+
+			return args.ToArray ();
+		}
+
 		public override string GetCompilerFlags (Project project, CProjectConfiguration configuration)
 		{
 			StringBuilder args = new StringBuilder ();
@@ -157,8 +227,7 @@ namespace CBinding
 			if (configuration.CompileTarget == CBinding.CompileTarget.SharedLibrary)
 				args.Append ("-fPIC ");
 			
-			switch (configuration.WarningLevel)
-			{
+			switch (configuration.WarningLevel) {
 			case WarningLevel.None:
 				args.Append ("-w ");
 				break;
@@ -169,6 +238,30 @@ namespace CBinding
 				args.Append ("-Wall ");
 				break;
 			}
+			switch (configuration.CVersion) {
+			case CVersion.ISOC:
+				args.Append ("-std=c90 ");
+				break;
+			case CVersion.C99:
+				args.Append ("-std=c99 ");
+				break;
+			case CVersion.C11:
+				args.Append ("-std=c11 ");
+				break;
+			case CVersion.ISOCPP:		
+				args.Append ("-std=c++99 ");
+				break;
+			case CVersion.CPP03:
+				args.Append ("-std=c++03 ");
+				break;
+			case CVersion.CPP11:
+				args.Append ("-std=c++11 ");
+				break;
+			case CVersion.CustomVersionString:
+				args.Append (configuration.CustomVersionString);
+				break;
+			}
+
 			
 			if (configuration.WarningsAsErrors)
 				args.Append ("-Werror ");
@@ -176,7 +269,7 @@ namespace CBinding
 			args.Append ("-O" + configuration.OptimizationLevel + " ");
 			
 			if (configuration.ExtraCompilerArguments != null && configuration.ExtraCompilerArguments.Length > 0) {
-				string extraCompilerArgs = ExpandBacktickedParameters(configuration.ExtraCompilerArguments.Replace ('\n', ' '));
+				string extraCompilerArgs = ExpandBacktickedParameters (configuration.ExtraCompilerArguments.Replace ('\n', ' '));
 				args.Append (extraCompilerArgs + " ");
 			}
 			
@@ -195,16 +288,16 @@ namespace CBinding
 			
 			return args.ToString ();
 		}
-		
+
 		public override string GetDefineFlags (Project project, CProjectConfiguration configuration)
 		{
 			return ProcessDefineSymbols (configuration.DefineSymbols);
 		}
-		
+
 		private bool NeedsCompiling (ProjectFile file, CProjectConfiguration configuration)
 		{
-			string objectFile = Path.Combine(configuration.OutputDirectory, Path.GetFileName(file.Name));
-			objectFile = Path.ChangeExtension(objectFile, ".o");
+			string objectFile = Path.Combine (configuration.OutputDirectory, Path.GetFileName (file.Name));
+			objectFile = Path.ChangeExtension (objectFile, ".o");
 			if (!File.Exists (objectFile))
 				return true;
 			
@@ -232,7 +325,7 @@ namespace CBinding
 			
 			return false;
 		}
-		
+
 		/// <summary>
 		/// Returns an array of depended on files or null if the
 		/// file containing the depended on files (.d) does does not exist.
@@ -240,8 +333,8 @@ namespace CBinding
 		private string[] DependedOnFiles (ProjectFile file, CProjectConfiguration configuration)
 		{
 			List<string> dependencies = new List<string> ();
-			string dependenciesFile = Path.Combine(configuration.OutputDirectory, Path.GetFileName(file.Name));
-			dependenciesFile = Path.ChangeExtension(dependenciesFile, ".d");
+			string dependenciesFile = Path.Combine (configuration.OutputDirectory, Path.GetFileName (file.Name));
+			dependenciesFile = Path.ChangeExtension (dependenciesFile, ".d");
 			
 			if (!File.Exists (dependenciesFile))
 				return null;
@@ -254,20 +347,20 @@ namespace CBinding
 				while ((temp = reader.ReadLine ()) != null) {
 					// TODO: We really should be using a regex here,
 					// this will have issues with pathnames containing double spaces.
-					string depfile = temp.Replace(" \\", String.Empty).Trim();
+					string depfile = temp.Replace (" \\", String.Empty).Trim ();
 	
 					// Ignore empty strings &  object files...
-					if(String.IsNullOrEmpty(depfile) ||
-					   depfile.EndsWith(".o:") || depfile.EndsWith(".o"))
-					   continue;
+					if (String.IsNullOrEmpty (depfile) ||
+					    depfile.EndsWith (".o:") || depfile.EndsWith (".o"))
+						continue;
 					
-					dependencies.Add(depfile.Replace(@"\ ", " "));
+					dependencies.Add (depfile.Replace (@"\ ", " "));
 				}
 			}
 
-			return dependencies.ToArray();
+			return dependencies.ToArray ();
 		}
-		
+
 		private bool PrecompileHeaders (ProjectFileCollection projectFiles,
 		                                CProjectConfiguration configuration,
 		                                string args,
@@ -302,7 +395,7 @@ namespace CBinding
 			monitor.EndTask ();
 			return success;
 		}
-		
+
 		private bool DoPrecompileHeader (ProjectFile file, string output, string args, IProgressMonitor monitor, CompilerResults cr)
 		{
 			string completeArgs = String.Format ("\"{0}\" {1} -o {2}", file.Name, args, output);
@@ -313,6 +406,7 @@ namespace CBinding
 		}
 
 		static readonly string[] libraryExtensions = { ".so", ".a", ".dll", ".dylib" };
+
 		/// <summary>
 		/// Checks whether a library can be linked with -lbasename
 		/// </summary>
@@ -321,23 +415,22 @@ namespace CBinding
 		/// the configured library paths, and library is of the form blah
 		/// or libblah.(a|so|dll|dylib), 
 		/// </remarks>
-		internal bool IsStandardLibrary(CProjectConfiguration configuration,
-		                                string directory, string library,
-		                                ref string std_lib)
+		internal bool IsStandardLibrary (CProjectConfiguration configuration,
+		                                 string directory, string library,
+		                                 ref string std_lib)
 		{
 			std_lib = library;
 			
-			if(!(String.IsNullOrEmpty(directory) || 
-			    configuration.LibPaths.Contains(directory)))
+			if (!(String.IsNullOrEmpty (directory) ||
+			    configuration.LibPaths.Contains (directory)))
 				return false;
 				
 			string libraryExtension = Path.GetExtension (library);
 			
-			foreach (string extension in libraryExtensions)
-			{
+			foreach (string extension in libraryExtensions) {
 				if (libraryExtension.Equals (extension, StringComparison.OrdinalIgnoreCase)) {
-					if (library.StartsWith("lib", StringComparison.OrdinalIgnoreCase)) {
-						std_lib = std_lib.Substring(3);
+					if (library.StartsWith ("lib", StringComparison.OrdinalIgnoreCase)) {
+						std_lib = std_lib.Substring (3);
 						return true;
 					} else {
 						return false;
@@ -347,22 +440,23 @@ namespace CBinding
 			
 			return true;
 		}
-		
+
 		private void MakeBin (Project project,
 		                      ProjectFileCollection projectFiles,
-		                     CProjectConfiguration configuration,
-		                     ProjectPackageCollection packages,
-		                     CompilerResults cr,
-		                     IProgressMonitor monitor, string outputName)
+		                      CProjectConfiguration configuration,
+		                      ProjectPackageCollection packages,
+		                      CompilerResults cr,
+		                      IProgressMonitor monitor, string outputName)
 		{
-			if (!NeedsUpdate (projectFiles, configuration, outputName)) return;
+			if (!NeedsUpdate (projectFiles, configuration, outputName))
+				return;
 			
 			string objectFiles = string.Join (" ", ObjectFiles (projectFiles, configuration, true));
 			string pkgargs = GeneratePkgLinkerArgs (packages);
 			StringBuilder args = new StringBuilder ();
 			
 			if (configuration.ExtraLinkerArguments != null && configuration.ExtraLinkerArguments.Length > 0) {
-				string extraLinkerArgs = ExpandBacktickedParameters(configuration.ExtraLinkerArguments.Replace ('\n', ' '));
+				string extraLinkerArgs = ExpandBacktickedParameters (configuration.ExtraLinkerArguments.Replace ('\n', ' '));
 				args.Append (extraLinkerArgs + " ");
 			}
 			
@@ -372,12 +466,12 @@ namespace CBinding
 			
 			if (configuration.Libs != null) {
 				foreach (string lib in configuration.Libs) {
-					string directory = Path.GetDirectoryName(lib);
-					string library = Path.GetFileName(lib);
+					string directory = Path.GetDirectoryName (lib);
+					string library = Path.GetFileName (lib);
 
 					// Is this a 'standard' (as in, uses an orthodox naming convention) library..?
 					string link_lib = String.Empty;
-					if(IsStandardLibrary(configuration, directory, library, ref link_lib))
+					if (IsStandardLibrary (configuration, directory, library, ref link_lib))
 						args.Append ("-l\"" + link_lib + "\" ");
 					// If not, reference the library by it's full pathname.
 					else
@@ -386,7 +480,7 @@ namespace CBinding
 			}
 			
 			string linker_args = string.Format ("-o \"{0}\" {1} {2} {3}",
-			    outputName, objectFiles, pkgargs, args.ToString ());
+				                     outputName, objectFiles, pkgargs, args.ToString ());
 			
 			monitor.BeginTask (GettextCatalog.GetString ("Generating binary \"{0}\" from object files", Path.GetFileName (outputName)), 1);
 			
@@ -400,7 +494,7 @@ namespace CBinding
 			ParseLinkerOutput (errorOutput, cr);
 			CheckReturnCode (exitCode, cr);
 		}
-		
+
 		private void MakeStaticLibrary (Project project,
 		                                ProjectFileCollection projectFiles,
 		                                CProjectConfiguration configuration,
@@ -408,7 +502,8 @@ namespace CBinding
 		                                CompilerResults cr,
 		                                IProgressMonitor monitor, string outputName)
 		{
-			if (!NeedsUpdate (projectFiles, configuration, outputName)) return;
+			if (!NeedsUpdate (projectFiles, configuration, outputName))
+				return;
 			
 			string objectFiles = string.Join (" ", ObjectFiles (projectFiles, configuration, true));
 			string args = string.Format ("rcs \"{0}\" {1}", outputName, objectFiles);
@@ -425,22 +520,23 @@ namespace CBinding
 			ParseLinkerOutput (errorOutput, cr);
 			CheckReturnCode (exitCode, cr);
 		}
-		
-		private void MakeSharedLibrary(Project project,
-		                               ProjectFileCollection projectFiles,
-		                               CProjectConfiguration configuration,
-		                               ProjectPackageCollection packages,
-		                               CompilerResults cr,
-		                               IProgressMonitor monitor, string outputName)
+
+		private void MakeSharedLibrary (Project project,
+		                                ProjectFileCollection projectFiles,
+		                                CProjectConfiguration configuration,
+		                                ProjectPackageCollection packages,
+		                                CompilerResults cr,
+		                                IProgressMonitor monitor, string outputName)
 		{
-			if (!NeedsUpdate (projectFiles, configuration, outputName)) return;
+			if (!NeedsUpdate (projectFiles, configuration, outputName))
+				return;
 			
 			string objectFiles = string.Join (" ", ObjectFiles (projectFiles, configuration, true));
 			string pkgargs = GeneratePkgLinkerArgs (packages);
 			StringBuilder args = new StringBuilder ();
 			
 			if (configuration.ExtraLinkerArguments != null && configuration.ExtraLinkerArguments.Length > 0) {
-				string extraLinkerArgs = ExpandBacktickedParameters(configuration.ExtraLinkerArguments.Replace ('\n', ' '));
+				string extraLinkerArgs = ExpandBacktickedParameters (configuration.ExtraLinkerArguments.Replace ('\n', ' '));
 				args.Append (extraLinkerArgs + " ");
 			}
 			
@@ -450,12 +546,12 @@ namespace CBinding
 			
 			if (configuration.Libs != null) {
 				foreach (string lib in configuration.Libs) {
-					string directory = Path.GetDirectoryName(lib);
-					string library = Path.GetFileName(lib);
+					string directory = Path.GetDirectoryName (lib);
+					string library = Path.GetFileName (lib);
 
 					// Is this a 'standard' (as in, uses an orthodox naming convention) library..?
 					string link_lib = String.Empty;
-					if(IsStandardLibrary(configuration, directory, library, ref link_lib))
+					if (IsStandardLibrary (configuration, directory, library, ref link_lib))
 						args.Append ("-l\"" + link_lib + "\" ");
 					// If not, reference the library by it's full pathname.
 					else
@@ -464,12 +560,12 @@ namespace CBinding
 			}
 			
 			string linker_args = string.Format ("-shared -o \"{0}\" {1} {2} {3}",
-			    outputName, objectFiles, pkgargs, args.ToString ());
+				                     outputName, objectFiles, pkgargs, args.ToString ());
 			
 			monitor.BeginTask (GettextCatalog.GetString ("Generating shared object \"{0}\" from object files", Path.GetFileName (outputName)), 1);
 			
 			string errorOutput;
-			int exitCode = ExecuteCommand (linkerCommand , linker_args, Path.GetDirectoryName (outputName), monitor, out errorOutput);
+			int exitCode = ExecuteCommand (linkerCommand, linker_args, Path.GetDirectoryName (outputName), monitor, out errorOutput);
 			if (exitCode == 0)
 				monitor.Step (1);
 			monitor.EndTask ();
@@ -478,7 +574,7 @@ namespace CBinding
 			ParseLinkerOutput (errorOutput, cr);
 			CheckReturnCode (exitCode, cr);
 		}
-		
+
 		int ExecuteCommand (string command, string args, string baseDirectory, IProgressMonitor monitor, out string errorOutput)
 		{
 			errorOutput = string.Empty;
@@ -515,7 +611,7 @@ namespace CBinding
 			
 			return exitCode;
 		}
-		
+
 		private string ProcessDefineSymbols (string symbols)
 		{
 			StringBuilder processed = new StringBuilder (symbols);
@@ -523,8 +619,8 @@ namespace CBinding
 			// Take care of multi adyacent spaces
 			for (int i = 0; i < processed.Length; i++) {
 				if (i + 1 < processed.Length &&
-				    processed[i] == ' ' &&
-				    processed[i + 1] == ' ') {
+				    processed [i] == ' ' &&
+				    processed [i + 1] == ' ') {
 					processed.Remove (i--, 1);
 				}
 			}
@@ -534,7 +630,7 @@ namespace CBinding
 				            .Replace (" ", " -D")
 				            .Insert (0, "-D");
 		}
-		
+
 		/// <summary>
 		/// Compiles a single source file into object code
 		/// and creates a file with it's dependencies.
@@ -547,10 +643,10 @@ namespace CBinding
 		                            bool use_ccache)
 		{
 
-			string outputName = Path.Combine(configuration.OutputDirectory, Path.GetFileName(Path.ChangeExtension (file.Name, ".o")));
+			string outputName = Path.Combine (configuration.OutputDirectory, Path.GetFileName (Path.ChangeExtension (file.Name, ".o")));
 			
 			string compiler_args = string.Format ("{0} -MMD \"{1}\" {2} -c -o \"{3}\"",
-			    (use_ccache ? compilerCommand : string.Empty), file.Name, args, outputName);
+				                       (use_ccache ? compilerCommand : string.Empty), file.Name, args, outputName);
 
 			string errorOutput;
 			int exitCode = ExecuteCommand ((use_ccache ? "ccache" : compilerCommand), compiler_args, configuration.OutputDirectory, monitor, out errorOutput);
@@ -559,7 +655,7 @@ namespace CBinding
 			CheckReturnCode (exitCode, cr);
 			return exitCode == 0;
 		}
-		
+
 		/// <summary>
 		/// Gets the files that get compiled into object code.
 		/// </summary>
@@ -583,16 +679,16 @@ namespace CBinding
 		/// </returns>
 		private string[] ObjectFiles (ProjectFileCollection projectFiles, CProjectConfiguration configuration, bool withQuotes)
 		{
-			if(projectFiles.Count == 0)
-				return new string[] {};
+			if (projectFiles.Count == 0)
+				return new string[] { };
 
 			List<string> objectFiles = new List<string> ();
 			
 			foreach (ProjectFile f in projectFiles) {
 				if (f.BuildAction == BuildAction.Compile) {
-					string PathName = Path.Combine(configuration.OutputDirectory, Path.GetFileNameWithoutExtension(f.Name) + ".o");
+					string PathName = Path.Combine (configuration.OutputDirectory, Path.GetFileNameWithoutExtension (f.Name) + ".o");
 
-					if(File.Exists(PathName) == false)
+					if (File.Exists (PathName) == false)
 						continue;
 					
 					if (!withQuotes)
@@ -604,7 +700,7 @@ namespace CBinding
 			
 			return objectFiles.ToArray ();
 		}
-		
+
 		public override void Clean (ProjectFileCollection projectFiles, CProjectConfiguration configuration, IProgressMonitor monitor)
 		{
 			//clean up object files
@@ -619,18 +715,18 @@ namespace CBinding
 			
 			CleanPrecompiledHeaders (configuration);
 		}
-		
+
 		void CleanPrecompiledHeaders (CProjectConfiguration configuration)
 		{
 			if (string.IsNullOrEmpty (configuration.IntermediateOutputDirectory))
-			    return;
+				return;
 			
 			string precDir = Path.Combine (configuration.IntermediateOutputDirectory, "prec");			
 
 			if (Directory.Exists (precDir))
 				Directory.Delete (precDir, true);
 		}
-		
+
 		private bool NeedsUpdate (ProjectFileCollection projectFiles, CProjectConfiguration configuration, string target)
 		{
 			if (!File.Exists (target))
@@ -642,7 +738,7 @@ namespace CBinding
 			
 			return false;
 		}
-		
+
 		protected override void ParseCompilerOutput (string errorString, CompilerResults cr)
 		{
 			TextReader reader = new StringReader (errorString);
@@ -656,17 +752,17 @@ namespace CBinding
 			
 			reader.Close ();
 		}
-		
+
 		private static Regex withColRegex = new Regex (
-		    @"^\s*(?<file>.*):(?<line>\d*):(?<column>\d*):\s*(?<level>.*)\s*:\s(?<message>.*)",
-		    RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+			                                    @"^\s*(?<file>.*):(?<line>\d*):(?<column>\d*):\s*(?<level>.*)\s*:\s(?<message>.*)",
+			                                    RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private static Regex noColRegex = new Regex (
-		    @"^\s*(?<file>.*):(?<line>\d*):\s*(?<level>.*)\s*:\s(?<message>.*)",
-		    RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+			                                  @"^\s*(?<file>.*):(?<line>\d*):\s*(?<level>.*)\s*:\s(?<message>.*)",
+			                                  RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private static Regex linkerRegex = new Regex (
-		    @"^\s*(?<file>[^:]*):(?<line>\d*):\s*(?<message>.*)",
-		    RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		
+			                                   @"^\s*(?<file>[^:]*):(?<line>\d*):\s*(?<message>.*)",
+			                                   RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
 		private CompilerError CreateErrorFromErrorString (string errorString, TextReader reader)
 		{
 			CompilerError error = new CompilerError ();
@@ -675,27 +771,25 @@ namespace CBinding
 			
 			Match match = withColRegex.Match (errorString);
 			
-			if (match.Success)
-			{
-				error.FileName = match.Groups["file"].Value;
-				error.Line = int.Parse (match.Groups["line"].Value);
-				error.Column = int.Parse (match.Groups["column"].Value);
-				error.IsWarning = (match.Groups["level"].Value.Equals (warning, StringComparison.Ordinal) ||
-				                   match.Groups["level"].Value.Equals (note, StringComparison.Ordinal));
-				error.ErrorText = match.Groups["message"].Value;
+			if (match.Success) {
+				error.FileName = match.Groups ["file"].Value;
+				error.Line = int.Parse (match.Groups ["line"].Value);
+				error.Column = int.Parse (match.Groups ["column"].Value);
+				error.IsWarning = (match.Groups ["level"].Value.Equals (warning, StringComparison.Ordinal) ||
+				match.Groups ["level"].Value.Equals (note, StringComparison.Ordinal));
+				error.ErrorText = match.Groups ["message"].Value;
 				
 				return error;
 			}
 			
 			match = noColRegex.Match (errorString);
 			
-			if (match.Success)
-			{
-				error.FileName = match.Groups["file"].Value;
-				error.Line = int.Parse (match.Groups["line"].Value);
-				error.IsWarning = (match.Groups["level"].Value.Equals (warning, StringComparison.Ordinal) ||
-				                   match.Groups["level"].Value.Equals (note, StringComparison.Ordinal));
-				error.ErrorText = match.Groups["message"].Value;
+			if (match.Success) {
+				error.FileName = match.Groups ["file"].Value;
+				error.Line = int.Parse (match.Groups ["line"].Value);
+				error.IsWarning = (match.Groups ["level"].Value.Equals (warning, StringComparison.Ordinal) ||
+				match.Groups ["level"].Value.Equals (note, StringComparison.Ordinal));
+				error.ErrorText = match.Groups ["message"].Value;
 				
 				// Skip messages that begin with ( and end with ), since they're generic.
 				//Attempt to capture multi-line versions too.
@@ -712,7 +806,7 @@ namespace CBinding
 			
 			return null;
 		}
-		
+
 		protected override void ParseLinkerOutput (string errorString, CompilerResults cr)
 		{
 			TextReader reader = new StringReader (errorString);
@@ -726,18 +820,17 @@ namespace CBinding
 			
 			reader.Close ();
 		}
-		
+
 		private CompilerError CreateLinkerErrorFromErrorString (string errorString)
 		{
 			CompilerError error = new CompilerError ();
 			
 			Match linkerMatch = linkerRegex.Match (errorString);
 			
-			if (linkerMatch.Success)
-			{
-				error.FileName = linkerMatch.Groups["file"].Value;
-				error.Line = int.Parse (linkerMatch.Groups["line"].Value);
-				error.ErrorText = linkerMatch.Groups["message"].Value;
+			if (linkerMatch.Success) {
+				error.FileName = linkerMatch.Groups ["file"].Value;
+				error.Line = int.Parse (linkerMatch.Groups ["line"].Value);
+				error.ErrorText = linkerMatch.Groups ["message"].Value;
 				
 				return error;
 			}
@@ -751,7 +844,7 @@ namespace CBinding
 		{
 			// 1) Quadruple \ required, to escape both echo's and sh's escape character filtering
 			// 2) \\\" required inside of echo, to translate into \" in sh, so it translates back as a " to MD...
-			string parameters = "-c \"echo " + tmp.Replace("\\", "\\\\\\\\").Replace("\"", "\\\\\\\"") + "\"";
+			string parameters = "-c \"echo " + tmp.Replace ("\\", "\\\\\\\\").Replace ("\"", "\\\\\\\"") + "\"";
 
 			var p = Process.Start (new ProcessStartInfo ("sh", parameters) {
 				UseShellExecute = false,
@@ -764,7 +857,7 @@ namespace CBinding
 			//TODO: check return code
 			return p.StandardOutput.ReadToEnd ().Trim ();
 		}
-		
+
 		bool CheckApp (string app)
 		{
 			try {
@@ -775,7 +868,7 @@ namespace CBinding
 				return false;
 			}
 		}
-		
+
 		/// <summary>
 		/// Checks a compilation return code, 
 		/// and adds an error result if the compiler results
@@ -792,7 +885,7 @@ namespace CBinding
 			cr.NativeCompilerReturnValue = returnCode;
 			if (0 != returnCode && 0 == cr.Errors.Count) { 
 				cr.Errors.Add (new CompilerError (string.Empty, 0, 0, string.Empty,
-				                                  GettextCatalog.GetString ("Build failed - check build output for details")));
+					GettextCatalog.GetString ("Build failed - check build output for details")));
 			}
 		}
 	}

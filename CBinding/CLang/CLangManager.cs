@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
+using System.Text;
+using MonoDevelop.Core;
+using System.IO;
+using MonoDevelop.Projects;
 
 namespace CBinding
 {
@@ -54,38 +58,17 @@ namespace CBinding
 
 		public void AddToTranslationUnits (CProject project, string fileName)
 		{
-			CProjectConfiguration active_configuration 
-			= (CProjectConfiguration)project.GetConfiguration (IdeApp.Workspace.ActiveConfiguration);
-			string[] arg = new string[1];
-			switch (active_configuration.CVersion) {
-			case CVersion.ISOC:
-				arg [0] = "-std=c90";
-				break;
-			case CVersion.C99:
-				arg [0] = "-std=c99";
-				break;
-			case CVersion.C11:
-				arg [0] = "-std=c11";
-				break;
-			case CVersion.ISOCPP:		
-				arg [0] = "-std=c++99";
-				break;
-			case CVersion.CPP03:
-				arg [0] = "-std=c++03";
-				break;
-			case CVersion.CPP11:
-				arg [0] = "-std=c++11";
-				break;
-			case CVersion.CustomVersionString:
-				arg [0] = active_configuration.CustomVersionString;
-				break;
-			}
+			ClangCCompiler compiler = new ClangCCompiler ();
+			CProjectConfiguration active_configuration =
+				(CProjectConfiguration)project.GetConfiguration (IdeApp.Workspace.ActiveConfiguration);
+
+			string[] args = compiler.GetCompilerFlagsAsArray (project, active_configuration);
 			translationUnits.Add (fileName, 
 				clang.createTranslationUnitFromSourceFile (
 					index,
 					fileName,
-					1,
-					arg,
+					args.Length,
+					args,
 					Convert.ToUInt32 (UnsavedFiles.Length),
 					UnsavedFiles
 				)
@@ -93,39 +76,17 @@ namespace CBinding
 		}
 
 		public void UpdateTranslationUnit (CProject project, string fileName)
-		{	
-			CProjectConfiguration active_configuration 
-			= (CProjectConfiguration)project.GetConfiguration (IdeApp.Workspace.ActiveConfiguration);
-			string[] arg = new string[1];
-			switch (active_configuration.CVersion) {
-			case CVersion.ISOC:
-				arg [0] = "-std=c90";
-				break;
-			case CVersion.C99:
-				arg [0] = "-std=c99";
-				break;
-			case CVersion.C11:
-				arg [0] = "-std=c11";
-				break;
-			case CVersion.ISOCPP:		
-				arg [0] = "-std=c++99";
-				break;
-			case CVersion.CPP03:
-				arg [0] = "-std=c++03";
-				break;
-			case CVersion.CPP11:
-				arg [0] = "-std=c++11";
-				break;
-			case CVersion.CustomVersionString:
-				arg [0] = active_configuration.CustomVersionString;
-				break;
-			}
+		{
+			ClangCCompiler compiler = new ClangCCompiler ();
+			CProjectConfiguration active_configuration =
+				(CProjectConfiguration)project.GetConfiguration (IdeApp.Workspace.ActiveConfiguration);
+			string[] args = compiler.GetCompilerFlagsAsArray (project, active_configuration);
 			clang.disposeTranslationUnit (translationUnits [fileName]);
 			translationUnits [fileName] = clang.createTranslationUnitFromSourceFile (
 				index,
 				fileName,
-				1,
-				arg,
+				args.Length,
+				args,
 				Convert.ToUInt32 (UnsavedFiles.Length),
 				UnsavedFiles
 			);
