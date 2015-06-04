@@ -35,6 +35,7 @@ using MonoDevelop.Ide;
 using MonoDevelop.Ide.TypeSystem;
 using ICSharpCode.NRefactory.TypeSystem;
 using ICSharpCode.NRefactory.TypeSystem.Implementation;
+using MonoDevelop.Core.Text;
 
 namespace CBinding.Parser
 {
@@ -43,13 +44,15 @@ namespace CBinding.Parser
 	/// </summary>
 	public class CDocumentParser:  TypeSystemParser
 	{
-		public override ParsedDocument Parse (bool storeAst, string fileName, TextReader reader, Project project = null)
+		public override System.Threading.Tasks.Task<ParsedDocument> Parse (ParseOptions options, System.Threading.CancellationToken cancellationToken)
 		{
+			var fileName = options.FileName;
+			var project = options.Project;
 			var doc = new DefaultParsedDocument (fileName);
 			doc.Flags |= ParsedDocumentFlags.NonSerializable;
 			ProjectInformation pi = ProjectInformationManager.Instance.Get (project);
 			
-			string content = reader.ReadToEnd ();
+			string content = options.Content.Text;
 			string[] contentLines = content.Split (new string[]{Environment.NewLine}, StringSplitOptions.None);
 			
 			var globals = new DefaultUnresolvedTypeDefinition ("", GettextCatalog.GetString ("(Global Scope)"));
@@ -58,7 +61,7 @@ namespace CBinding.Parser
 				foreach (LanguageItem li in pi.Containers ()) {
 					if (null == li.Parent && FilePath.Equals (li.File, fileName)) {
 						var tmp = AddLanguageItem (pi, globals, li, contentLines) as IUnresolvedTypeDefinition;
-						if (null != tmp){ doc.TopLevelTypeDefinitions.Add (tmp); }
+						if (null != tmp){ /*doc.TopLevelTypeDefinitions.Add (tmp);*/ }
 					}
 				}
 				
@@ -70,8 +73,8 @@ namespace CBinding.Parser
 				}
 			}
 			
-			doc.TopLevelTypeDefinitions.Add (globals);
-			return doc;
+			//doc.TopLevelTypeDefinitions.Add (globals);
+			return System.Threading.Tasks.Task.FromResult((ParsedDocument)doc);
 		}
 		
 		/// <summary>
@@ -173,10 +176,9 @@ namespace CBinding.Parser
 		/// A <see cref="LanguageItem"/>: The item to convert.
 		/// </param>
 		/// <param name="contentLines">
-		/// A <see cref="string[]"/>: The document in which item is defined.
+		/// A <see cref="System.String[]"/>: The document in which item is defined.
 		/// </param>
-		static DefaultUnresolvedTypeDefinition LanguageItemToIType
-		(ProjectInformation pi, LanguageItem item, string[] contentLines)
+		static DefaultUnresolvedTypeDefinition LanguageItemToIType (ProjectInformation pi, LanguageItem item, string[] contentLines)
 		{
 			var klass = new DefaultUnresolvedTypeDefinition ("", item.File);
 			if (item is Class || item is Structure) {

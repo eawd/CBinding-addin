@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{335583F6-C4BA-4671-A763-5DE78985CD97}</ProjectGuid>
+    <ProjectGuid>{7B57882B-AD46-469B-84E7-06DF98D11468}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>MonoDevelop.CBinding</AssemblyName>
     <RootNamespace>CBinding</RootNamespace>
@@ -13,7 +13,7 @@
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
-    <OutputPath>build\bin\Debug</OutputPath>
+    <OutputPath>..\..\monodevelop\main\build\AddIns\BackendBindings</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
@@ -23,12 +23,12 @@
     <AssemblyOriginatorKeyFile>.</AssemblyOriginatorKeyFile>
     <DefineConstants>DEBUG</DefineConstants>
     <NoWarn>1591;1573</NoWarn>
-    <DocumentationFile>build\MonoDevelop.CBinding.xml</DocumentationFile>
+    <DocumentationFile>..\..\..\build\AddIns\BackendBindings\MonoDevelop.CBinding.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>True</Optimize>
-    <OutputPath>build\bin\Release</OutputPath>
+    <OutputPath>..\..\monodevelop\main\build\AddIns\BackendBindings</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
@@ -41,6 +41,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Xml" />
     <Reference Include="Mono.Posix" />
     <Reference Include="glib-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
       <SpecificVersion>False</SpecificVersion>
@@ -51,6 +52,7 @@
       <Package>gtk-sharp-2.0</Package>
     </Reference>
     <Reference Include="atk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <SpecificVersion>False</SpecificVersion>
       <Package>gtk-sharp-2.0</Package>
     </Reference>
     <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
@@ -62,16 +64,16 @@
       <Package>gtk-sharp-2.0</Package>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="ClangSharp">
-      <HintPath>ClangSharp.dll</HintPath>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\monodevelop\main\build\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
       <HintPath>..\..\monodevelop\main\build\bin\ICSharpCode.NRefactory.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\monodevelop\main\build\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="ClangSharp">
+      <HintPath>ClangSharp.dll</HintPath>
     </Reference>
     <Reference Include="Mono.TextEditor">
       <HintPath>..\..\monodevelop\main\build\bin\Mono.TextEditor.dll</HintPath>
@@ -85,12 +87,13 @@
       <HintPath>..\..\monodevelop\main\build\bin\MonoDevelop.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="MonoDevelop.Deployment.Linux">
+      <HintPath>..\..\monodevelop\main\build\AddIns\MonoDevelop.Deployment\MonoDevelop.Deployment.Linux.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="MonoDevelop.Deployment">
       <HintPath>..\..\monodevelop\main\build\AddIns\MonoDevelop.Deployment\MonoDevelop.Deployment.dll</HintPath>
       <Private>False</Private>
-    </Reference>
-    <Reference Include="MonoDevelop.Deployment.Linux">
-      <HintPath>..\..\monodevelop\main\build\AddIns\MonoDevelop.Deployment\MonoDevelop.Deployment.Linux.dll</HintPath>
     </Reference>
     <Reference Include="MonoDevelop.DesignerSupport">
       <HintPath>..\..\monodevelop\main\build\AddIns\MonoDevelop.DesignerSupport\MonoDevelop.DesignerSupport.dll</HintPath>
@@ -112,14 +115,18 @@
       <HintPath>..\..\monodevelop\main\build\bin\Xwt.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" />
+    <Reference Include="ICSharpCode.NRefactory6.CSharp">
+      <HintPath>..\..\monodevelop\main\build\bin\ICSharpCode.NRefactory6.CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>..\..\monodevelop\main\build\bin\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.am" />
     <None Include="README" />
-    <None Include="Makefile" />
-    <None Include="ClangSharp.dll" />
-    <None Include="libclang.so" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CBinding.addin.xml">
@@ -188,7 +195,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Project\CProject.cs" />
-    <Compile Include="Project\CProjectBinding.cs" />
     <Compile Include="Project\CProjectConfiguration.cs" />
     <Compile Include="gtk-gui\generated.cs" />
     <Compile Include="Gui\CodeGenerationPanel.cs" />
@@ -197,14 +203,16 @@
     <Compile Include="Compiler\GppCompiler.cs" />
     <Compile Include="Compiler\GNUCompiler.cs" />
     <Compile Include="Gui\CompilerPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.CodeGenerationPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.CompilerPanel.cs" />
     <Compile Include="Compiler\ICompiler.cs" />
     <Compile Include="Project\ProjectPackageCollection.cs" />
     <Compile Include="Gui\EditPackagesDialog.cs" />
-    <Compile Include="CLanguageBinding.cs" />
+    <Compile Include="gtk-gui\CBinding.EditPackagesDialog.cs" />
     <Compile Include="Project\Package.cs" />
     <Compile Include="Project\ProjectPackageEventArgs.cs" />
     <Compile Include="Gui\OutputOptionsPanel.cs" />
-    <Compile Include="Project\CProjectServiceExtension.cs" />
+    <Compile Include="gtk-gui\CBinding.OutputOptionsPanel.cs" />
     <Compile Include="Navigation\ProjectNodeBuilderExtension.cs" />
     <Compile Include="Navigation\NamespaceNodeBuilder.cs" />
     <Compile Include="ProjectPad\ProjectReferencesExtension.cs" />
@@ -244,29 +252,23 @@
     <Compile Include="Parser\Typedef.cs" />
     <Compile Include="Parser\Union.cs" />
     <Compile Include="Parser\Variable.cs" />
-    <Compile Include="CppLanguageBinding.cs" />
     <Compile Include="Gui\GeneralOptionsPanel.cs" />
+    <Compile Include="gtk-gui\CBinding.GeneralOptionsPanel.cs" />
     <Compile Include="Parser\Local.cs" />
     <Compile Include="Gui\PackageDetails.cs" />
+    <Compile Include="gtk-gui\CBinding.PackageDetails.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Parser\CDocumentParser.cs" />
-    <Compile Include="ObjCLanguageBinding.cs" />
-    <Compile Include="ObjCppLanguageBinding.cs" />
     <Compile Include="Parser\CompilationUnitDataProvider.cs" />
     <Compile Include="Parser\DataProvider.cs" />
     <Compile Include="Parser\CTagsManager.cs" />
     <Compile Include="Parser\ExuberantCTagsManager.cs" />
     <Compile Include="Parser\BsdCTagsManager.cs" />
     <Compile Include="AddinInfo.cs" />
+    <Compile Include="Gui\DataWrapper.cs" />
+    <Compile Include="CLang\CLangManager.cs" />
     <Compile Include="Compiler\ClangCCompiler.cs" />
     <Compile Include="Compiler\ClangCXXCompiler.cs" />
-    <Compile Include="CLang\CLangManager.cs" />
-    <Compile Include="gtk-gui\CBinding.CodeGenerationPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.CompilerPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.EditPackagesDialog.cs" />
-    <Compile Include="gtk-gui\CBinding.GeneralOptionsPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.OutputOptionsPanel.cs" />
-    <Compile Include="gtk-gui\CBinding.PackageDetails.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -278,6 +280,5 @@
   </ProjectExtensions>
   <ItemGroup>
     <Folder Include="CLang\" />
-    <Folder Include="gtk-gui\" />
   </ItemGroup>
 </Project>

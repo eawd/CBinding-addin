@@ -46,6 +46,7 @@ using MonoDevelop.Deployment;
 using MonoDevelop.Deployment.Linux;
 using CBinding.Parser;
 using MonoDevelop.Ide;
+using System.Threading.Tasks;
 
 namespace CBinding
 {
@@ -65,7 +66,7 @@ namespace CBinding
 		GotoDeclaration,
 	}
 
-	[DataInclude (typeof(CProjectConfiguration))]
+	[ExportProjectType ("{2857B73E-F847-4B02-9238-064979017E93}", Extension = "cproj", Alias = "C/C++")]
 	public class CProject : Project, IDeployable
 	{
 		[ItemProperty ("Compiler", ValueType = typeof(CCompiler))]
@@ -137,14 +138,14 @@ namespace CBinding
 				(CProjectConfiguration)CreateConfiguration ("Debug");
 			
 			configuration.DefineSymbols = "DEBUG MONODEVELOP";		
-			configuration.DebugMode = true;
-
+			configuration.DebugSymbols = true;
+				
 			Configurations.Add (configuration);
 			
 			configuration =
 				(CProjectConfiguration)CreateConfiguration ("Release");
 				
-			configuration.DebugMode = false;
+			configuration.DebugSymbols = false;
 			configuration.OptimizationLevel = 3;
 			configuration.DefineSymbols = "MONODEVELOP";
 			Configurations.Add (configuration);
@@ -178,13 +179,9 @@ namespace CBinding
 			}			
 		}
 
-		public override IEnumerable<string> GetProjectTypes ()
+		protected override string[] OnGetSupportedLanguages ()
 		{
-			yield return "Native";
-		}
-
-		public override string[] SupportedLanguages {
-			get { return new string[] { "C", "CPP", "Objective C", "Objective C++" }; }
+			return new string[] { "C", "CPP", "Objective C", "Objective C++" };
 		}
 
 		public CompileTarget CompileTarget {
@@ -192,7 +189,7 @@ namespace CBinding
 			set { target = value; }
 		}
 
-		public override bool IsCompileable (string fileName)
+		protected override bool OnGetIsCompileable (string fileName)
 		{
 			string ext = Path.GetExtension (fileName.ToUpper ());
 			
@@ -203,7 +200,7 @@ namespace CBinding
 			}
 		}
 
-		public override IEnumerable<SolutionItem> GetReferencedItems (ConfigurationSelector configuration)
+		protected override IEnumerable<SolutionItem> OnGetReferencedItems (ConfigurationSelector configuration)
 		{
 			foreach (var p in base.GetReferencedItems (configuration))
 				yield return p;
@@ -303,15 +300,33 @@ namespace CBinding
 			return pkgfile;
 		}
 
-		protected override BuildResult DoBuild (IProgressMonitor monitor, ConfigurationSelector configuration)
+		protected override Task<BuildResult> DoBuild (ProgressMonitor monitor, ConfigurationSelector configuration)
 		{
 			CProjectConfiguration pc = (CProjectConfiguration)GetConfiguration (configuration);
 			pc.SourceDirectory = BaseDirectory;
-			
-			return compiler_manager.Compile (this,
-				Files, packages,
-				pc,
-				monitor);
+
+			return Task<BuildResult>.Factory.StartNew (delegate {
+				if (pc.CompileTarget != CompileTarget.Bin)
+					WriteMDPkgPackage (configuration);
+
+				return compiler_manager.Compile (this,
+					Files, packages,
+					pc,
+					monitor);
+			});
+		}
+
+		protected async override Task<BuildResult> OnClean (ProgressMonitor monitor, ConfigurationSelector configuration, OperationContext operationContext)
+		{
+			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (configuration);
+
+			var res = await base.OnClean (monitor, configuration, operationContext);
+			if (res.HasErrors)
+				return res;
+
+			await Task.Run (() => Compiler.Clean (Files, conf, monitor));
+
+			return res;
 		}
 
 		protected virtual ExecutionCommand CreateExecutionCommand (CProjectConfiguration conf)
@@ -331,11 +346,11 @@ namespace CBinding
 			return (target == CBinding.CompileTarget.Bin) && context.ExecutionHandler.CanExecute (cmd);
 		}
 
-		protected override void DoExecute (IProgressMonitor monitor, ExecutionContext context, ConfigurationSelector configuration)
+		protected async override Task DoExecute (ProgressMonitor monitor, ExecutionContext context, ConfigurationSelector configuration)
 		{
 			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (configuration);
 			bool pause = conf.PauseConsoleOutput;
-			IConsole console;
+			OperationConsole console;
 			
 			if (conf.CompileTarget != CBinding.CompileTarget.Bin) {
 				MessageService.ShowMessage ("Compile target is not an executable!");
@@ -345,11 +360,9 @@ namespace CBinding
 			monitor.Log.WriteLine ("Running project...");
 			
 			if (conf.ExternalConsole)
-				console = context.ExternalConsoleFactory.CreateConsole (!pause);
+				console = context.ExternalConsoleFactory.CreateConsole (!pause, monitor.CancellationToken);
 			else
-				console = context.ConsoleFactory.CreateConsole (!pause);
-			
-			AggregatedOperationMonitor operationMonitor = new AggregatedOperationMonitor (monitor);
+				console = context.ConsoleFactory.CreateConsole (monitor.CancellationToken);
 			
 			try {
 				ExecutionCommand cmd = CreateExecutionCommand (conf);
@@ -357,29 +370,27 @@ namespace CBinding
 					monitor.ReportError ("Cannot execute \"" + conf.Output + "\". The selected execution mode is not supported for C projects.", null);
 					return;
 				}
-				
-				IProcessAsyncOperation op = context.ExecutionHandler.Execute (cmd, console);
-				
-				operationMonitor.AddOperation (op);
-				op.WaitForCompleted ();
+
+				ProcessAsyncOperation op = context.ExecutionHandler.Execute (cmd, console);
+				using (var t = monitor.CancellationToken.Register (op.Cancel))
+					await op.Task;
 				
 				monitor.Log.WriteLine ("The operation exited with code: {0}", op.ExitCode);
 			} catch (Exception ex) {
 				LoggingService.LogError (string.Format ("Cannot execute \"{0}\"", conf.Output), ex);
 				monitor.ReportError ("Cannot execute \"" + conf.Output + "\"", ex);
 			} finally {			
-				operationMonitor.Dispose ();			
 				console.Dispose ();
 			}
 		}
 
-		public override FilePath GetOutputFileName (ConfigurationSelector configuration)
+		protected override FilePath OnGetOutputFileName (ConfigurationSelector configuration)
 		{
 			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (configuration);
 			return conf.OutputDirectory.Combine (conf.CompiledOutputName);
 		}
 
-		public override SolutionItemConfiguration CreateConfiguration (string name)
+		protected override SolutionItemConfiguration OnCreateConfiguration (string name, ConfigurationKind kind)
 		{
 			CProjectConfiguration conf = new CProjectConfiguration ();
 			
@@ -417,6 +428,7 @@ namespace CBinding
 			}
 		}
 
+		// TODO NPM: not supported
 		[Browsable (false)]
 		[ItemProperty ("Packages")]
 		public ProjectPackageCollection Packages {
@@ -430,13 +442,11 @@ namespace CBinding
 		protected override void OnFileAddedToProject (ProjectFileEventArgs args)
 		{
 			base.OnFileAddedToProject (args);
-			
 			foreach (ProjectFileEventInfo e in args) {
 				if (!Loading && !IsCompileable (e.ProjectFile.Name) &&
 				    e.ProjectFile.BuildAction == BuildAction.Compile) {
 					e.ProjectFile.BuildAction = BuildAction.None;
 				}
-
 				if (e.ProjectFile.BuildAction == BuildAction.Compile)
 					CLangManager.Instance.AddToTranslationUnits (this, e.ProjectFile.Name);
 			}
@@ -445,13 +455,11 @@ namespace CBinding
 		protected override void OnFileChangedInProject (ProjectFileEventArgs args)
 		{
 			base.OnFileChangedInProject (args);
-
 			foreach (ProjectFileEventInfo e in args) {
 				if (!Loading && !IsCompileable (e.ProjectFile.Name) &&
 				    e.ProjectFile.BuildAction == BuildAction.Compile) {
 					e.ProjectFile.BuildAction = BuildAction.None;
 				}
-
 				if (e.ProjectFile.BuildAction == BuildAction.Compile)
 					CLangManager.Instance.UpdateTranslationUnit (this, e.ProjectFile.Name);
 			}
@@ -460,37 +468,35 @@ namespace CBinding
 		protected override void OnFileRemovedFromProject (ProjectFileEventArgs args)
 		{
 			base.OnFileRemovedFromProject (args);
-			
 			foreach (ProjectFileEventInfo e in args) {
 				if (!Loading && !IsCompileable (e.ProjectFile.Name) &&
 				    e.ProjectFile.BuildAction == BuildAction.Compile) {
 					e.ProjectFile.BuildAction = BuildAction.None;
 				}
-
 				if (e.ProjectFile.BuildAction == BuildAction.Compile)
 					CLangManager.Instance.RemoveTranslationUnit (this, e.ProjectFile.Name);
 			}
 		}
 
-		
+
 		private static void OnEntryAddedToCombine (object sender, SolutionItemEventArgs e)
 		{
 			CProject p = e.SolutionItem as CProject;
-			
 			if (p == null)
 				return;
-			
 			foreach (ProjectFile f in p.Files)
 				CLangManager.Instance.AddToTranslationUnits (p, f.Name);
 		}
 
 		internal void NotifyPackageRemovedFromProject (Package package)
 		{
+			Runtime.AssertMainThread ();
 			PackageRemovedFromProject (this, new ProjectPackageEventArgs (this, package));
 		}
 
 		internal void NotifyPackageAddedToProject (Package package)
 		{
+			Runtime.AssertMainThread ();
 			PackageAddedToProject (this, new ProjectPackageEventArgs (this, package));
 		}
 

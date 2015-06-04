@@ -45,10 +45,10 @@ namespace CBinding
 		private Gtk.ListStore includePathStore = new Gtk.ListStore (typeof(string));
 		
 		static string[,] quickPathInsertMenu = new string[,] {
-			{ GettextCatalog.GetString ("_Project Directory"), "${ProjectDir}" },
-			{ GettextCatalog.GetString ("_Root Solution Directory"), "${CombineDir}" },
+			{GettextCatalog.GetString ("_Project Directory"), "${ProjectDir}"},
+			{GettextCatalog.GetString ("_Root Solution Directory"), "${CombineDir}"},
 		};
-
+		
 		public CodeGenerationPanel ()
 		{
 			this.Build ();
@@ -70,12 +70,13 @@ namespace CBinding
 			new MenuButtonEntry (libPathEntry, quickInsertLibButton, quickPathInsertMenu);
 			new MenuButtonEntry (includePathEntry, quickInsertIncludeButton, quickPathInsertMenu);
 		}
-
+		
 		public void Load (CProjectConfiguration config)
 		{
 			configuration = config;
 			
-			switch (configuration.WarningLevel) {
+			switch (configuration.WarningLevel)
+			{
 			case WarningLevel.None:
 				noWarningRadio.Active = true;
 				break;
@@ -86,38 +87,13 @@ namespace CBinding
 				allWarningRadio.Active = true;
 				break;
 			}
-
-			switch (configuration.CVersion) {
-			case CVersion.CustomVersionString:
-				CVersionComboBox.Active = 0;
-				customCVersionString.Text = configuration.CustomVersionString;
-				break;
-			case CVersion.ISOC:
-				CVersionComboBox.Active = 1;
-				break;
-			case CVersion.C99:
-				CVersionComboBox.Active = 2;
-				break;
-			case CVersion.C11:
-				CVersionComboBox.Active = 3;
-				break;
-			case CVersion.ISOCPP:
-				CVersionComboBox.Active = 4;
-				break;
-			case CVersion.CPP03:
-				CVersionComboBox.Active = 5;
-				break;
-			case CVersion.CPP11:
-				CVersionComboBox.Active = 6;
-				break;
-			}
-
 			
 			warningsAsErrorsCheckBox.Active = configuration.WarningsAsErrors;
 			
 			optimizationSpinButton.Value = configuration.OptimizationLevel;
 			
-			switch (configuration.CompileTarget) {
+			switch (configuration.CompileTarget)
+			{
 			case CBinding.CompileTarget.Bin:
 				targetComboBox.Active = 0;
 				break;
@@ -147,7 +123,7 @@ namespace CBinding
 			foreach (string includePath in configuration.Includes)
 				includePathStore.AppendValues (includePath);
 		}
-
+		
 		private void OnIncludePathAdded (object sender, EventArgs e)
 		{
 			if (includePathEntry.Text.Length > 0) {				
@@ -155,14 +131,14 @@ namespace CBinding
 				includePathEntry.Text = string.Empty;
 			}
 		}
-
+		
 		private void OnIncludePathRemoved (object sender, EventArgs e)
 		{
 			Gtk.TreeIter iter;
 			includePathTreeView.Selection.GetSelected (out iter);
 			includePathStore.Remove (ref iter);
 		}
-
+		
 		private void OnLibPathAdded (object sender, EventArgs e)
 		{
 			if (libPathEntry.Text.Length > 0) {
@@ -170,14 +146,14 @@ namespace CBinding
 				libPathEntry.Text = string.Empty;
 			}
 		}
-
+		
 		private void OnLibPathRemoved (object sender, EventArgs e)
 		{
 			Gtk.TreeIter iter;
 			libPathTreeView.Selection.GetSelected (out iter);
 			libPathStore.Remove (ref iter);
 		}
-
+		
 		private void OnLibAdded (object sender, EventArgs e)
 		{
 			if (libAddEntry.Text.Length > 0) {				
@@ -185,7 +161,7 @@ namespace CBinding
 				libAddEntry.Text = string.Empty;
 			}
 		}
-
+		
 		private void OnLibRemoved (object sender, EventArgs e)
 		{
 			Gtk.TreeIter iter;
@@ -198,11 +174,11 @@ namespace CBinding
 		internal const string DEFAULT_INCLUDE_DIR = "/usr/lib";
 		internal const string STATIC_LIB_FILTER = "*.a";
 		internal const string DYNAMIC_LIB_FILTER = "*.so";
-
+		
 		private void OnBrowseButtonClick (object sender, EventArgs e)
 		{
 			var dialog = new MonoDevelop.Components.SelectFileDialog (GettextCatalog.GetString ("Add Library")) {
-				TransientFor = (Gtk.Window)Toplevel,
+				TransientFor = (Gtk.Window) Toplevel,
 				CurrentFolder = DEFAULT_LIB_DIR,
 			};
 			
@@ -213,29 +189,29 @@ namespace CBinding
 			if (dialog.Run ())
 				libAddEntry.Text = dialog.SelectedFile;
 		}
-
+		
 		private void OnIncludePathBrowseButtonClick (object sender, EventArgs e)
 		{
 			var dialog = new MonoDevelop.Components.SelectFolderDialog (GettextCatalog.GetString ("Add Path")) {
-				TransientFor = (Gtk.Window)Toplevel,
+				TransientFor = (Gtk.Window) Toplevel,
 				CurrentFolder = DEFAULT_INCLUDE_DIR,
 			};
 			
 			if (dialog.Run ())
 				includePathEntry.Text = dialog.SelectedFile;
 		}
-
+		
 		private void OnLibPathBrowseButtonClick (object sender, EventArgs e)
 		{
 			var dialog = new MonoDevelop.Components.SelectFolderDialog (GettextCatalog.GetString ("Add Path")) {
-				TransientFor = (Gtk.Window)Toplevel,
+				TransientFor = (Gtk.Window) Toplevel,
 				CurrentFolder = DEFAULT_LIB_DIR,
 			};
 			
 			if (dialog.Run ())
 				libPathEntry.Text = dialog.SelectedFile;
 		}
-
+		
 		public bool Store ()
 		{
 			if (configuration == null)
@@ -255,7 +231,8 @@ namespace CBinding
 			
 			configuration.OptimizationLevel = (int)optimizationSpinButton.Value;
 			
-			switch (targetComboBox.ActiveText) {
+			switch (targetComboBox.ActiveText)
+			{
 			case "Executable":
 				configuration.CompileTarget = CBinding.CompileTarget.Bin;
 				break;
@@ -266,32 +243,7 @@ namespace CBinding
 				configuration.CompileTarget = CBinding.CompileTarget.SharedLibrary;
 				break;
 			}
-
-			switch (CVersionComboBox.Active) {
-			case 0:
-				configuration.CVersion = CVersion.CustomVersionString;
-				configuration.CustomVersionString = customCVersionString.Text;
-				break;
-			case 1:
-				configuration.CVersion = CVersion.ISOC;
-				break;
-			case 2:
-				configuration.CVersion = CVersion.C99;
-				break;
-			case 3:
-				configuration.CVersion = CVersion.C11;
-				break;
-			case 4:
-				configuration.CVersion = CVersion.ISOCPP;
-				break;
-			case 5:
-				configuration.CVersion = CVersion.CPP03;
-				break;
-			case 6:
-				configuration.CVersion = CVersion.CPP11;
-				break;
-			}
-
+			
 			configuration.ExtraCompilerArguments = extraCompilerTextView.Buffer.Text;
 			
 			configuration.ExtraLinkerArguments = extraLinkerTextView.Buffer.Text;
@@ -328,9 +280,9 @@ namespace CBinding
 		protected virtual void OnLibAddEntryChanged (object sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty (libAddEntry.Text))
-				addLibButton.Sensitive = false;
+			    addLibButton.Sensitive = false;
 			else
-				addLibButton.Sensitive = true;
+			    addLibButton.Sensitive = true;
 		}
 
 		protected virtual void OnLibTreeViewCursorChanged (object sender, System.EventArgs e)
@@ -346,17 +298,17 @@ namespace CBinding
 		protected virtual void OnIncludePathEntryChanged (object sender, System.EventArgs e)
 		{
 			if (string.IsNullOrEmpty (includePathEntry.Text))
-				includePathAddButton.Sensitive = false;
+			    includePathAddButton.Sensitive = false;
 			else
-				includePathAddButton.Sensitive = true;
+			    includePathAddButton.Sensitive = true;
 		}
 
 		protected virtual void OnLibPathEntryChanged (object sender, System.EventArgs e)
 		{
 			if (string.IsNullOrEmpty (libPathEntry.Text))
-				libPathAddButton.Sensitive = false;
+			    libPathAddButton.Sensitive = false;
 			else
-				libPathAddButton.Sensitive = true;
+			    libPathAddButton.Sensitive = true;
 		}
 
 		protected virtual void OnIncludePathTreeViewCursorChanged (object sender, System.EventArgs e)
@@ -368,7 +320,7 @@ namespace CBinding
 		{
 			includePathRemoveButton.Sensitive = false;
 		}
-
+		
 		protected virtual void OnLibPathTreeViewCursorChanged (object sender, System.EventArgs e)
 		{
 			libPathRemoveButton.Sensitive = true;
@@ -394,21 +346,21 @@ namespace CBinding
 			OnLibPathAdded (this, new EventArgs ());
 		}
 	}
-
+	
 	public class CodeGenerationPanelBinding : MultiConfigItemOptionsPanel
 	{
 		private CodeGenerationPanel panel;
-
+		
 		public override Gtk.Widget CreatePanelWidget ()
 		{
 			return panel = new CodeGenerationPanel ();
 		}
-
+		
 		public override void LoadConfigData ()
 		{
-			panel.Load ((CProjectConfiguration)CurrentConfiguration);
+			panel.Load ((CProjectConfiguration) CurrentConfiguration);
 		}
-
+		
 		public override void ApplyChanges ()
 		{
 			panel.Store ();

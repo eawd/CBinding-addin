@@ -56,7 +56,7 @@ namespace CBinding
 			ProjectFileCollection projectFiles,
 			ProjectPackageCollection packages,
 			CProjectConfiguration configuration,
-			IProgressMonitor monitor)
+			ProgressMonitor monitor)
 		{
 			if (!appsChecked) {
 				appsChecked = true;
@@ -139,7 +139,7 @@ namespace CBinding
 			get { return true; }
 		}
 
-		protected Dictionary<string, string> GetStringTags (Project project)
+		Dictionary<string, string> GetStringTags (Project project)
 		{
 			Dictionary<string, string> result = new Dictionary<string, string> (StringComparer.InvariantCultureIgnoreCase);
 			result ["PROJECTDIR"] = project.BaseDirectory;
@@ -151,7 +151,7 @@ namespace CBinding
 		{
 			List<string> args = new List<string> ();
 
-			if (configuration.DebugMode)
+			if (configuration.DebugSymbols)
 				args.Add ("-g");
 
 			if (configuration.CompileTarget == CBinding.CompileTarget.SharedLibrary)
@@ -221,7 +221,7 @@ namespace CBinding
 		{
 			StringBuilder args = new StringBuilder ();
 			
-			if (configuration.DebugMode)
+			if (configuration.DebugSymbols)
 				args.Append ("-g ");
 			
 			if (configuration.CompileTarget == CBinding.CompileTarget.SharedLibrary)
@@ -238,30 +238,6 @@ namespace CBinding
 				args.Append ("-Wall ");
 				break;
 			}
-			switch (configuration.CVersion) {
-			case CVersion.ISOC:
-				args.Append ("-std=c90 ");
-				break;
-			case CVersion.C99:
-				args.Append ("-std=c99 ");
-				break;
-			case CVersion.C11:
-				args.Append ("-std=c11 ");
-				break;
-			case CVersion.ISOCPP:		
-				args.Append ("-std=c++99 ");
-				break;
-			case CVersion.CPP03:
-				args.Append ("-std=c++03 ");
-				break;
-			case CVersion.CPP11:
-				args.Append ("-std=c++11 ");
-				break;
-			case CVersion.CustomVersionString:
-				args.Append (configuration.CustomVersionString);
-				break;
-			}
-
 			
 			if (configuration.WarningsAsErrors)
 				args.Append ("-Werror ");
@@ -364,7 +340,7 @@ namespace CBinding
 		private bool PrecompileHeaders (ProjectFileCollection projectFiles,
 		                                CProjectConfiguration configuration,
 		                                string args,
-		                                IProgressMonitor monitor,
+		                                ProgressMonitor monitor,
 		                                CompilerResults cr)
 		{
 			monitor.BeginTask (GettextCatalog.GetString ("Precompiling headers"), 1);
@@ -396,7 +372,7 @@ namespace CBinding
 			return success;
 		}
 
-		private bool DoPrecompileHeader (ProjectFile file, string output, string args, IProgressMonitor monitor, CompilerResults cr)
+		private bool DoPrecompileHeader (ProjectFile file, string output, string args, ProgressMonitor monitor, CompilerResults cr)
 		{
 			string completeArgs = String.Format ("\"{0}\" {1} -o {2}", file.Name, args, output);
 			string errorOutput;
@@ -446,7 +422,7 @@ namespace CBinding
 		                      CProjectConfiguration configuration,
 		                      ProjectPackageCollection packages,
 		                      CompilerResults cr,
-		                      IProgressMonitor monitor, string outputName)
+		                      ProgressMonitor monitor, string outputName)
 		{
 			if (!NeedsUpdate (projectFiles, configuration, outputName))
 				return;
@@ -500,7 +476,7 @@ namespace CBinding
 		                                CProjectConfiguration configuration,
 		                                ProjectPackageCollection packages,
 		                                CompilerResults cr,
-		                                IProgressMonitor monitor, string outputName)
+		                                ProgressMonitor monitor, string outputName)
 		{
 			if (!NeedsUpdate (projectFiles, configuration, outputName))
 				return;
@@ -526,7 +502,7 @@ namespace CBinding
 		                                CProjectConfiguration configuration,
 		                                ProjectPackageCollection packages,
 		                                CompilerResults cr,
-		                                IProgressMonitor monitor, string outputName)
+		                                ProgressMonitor monitor, string outputName)
 		{
 			if (!NeedsUpdate (projectFiles, configuration, outputName))
 				return;
@@ -575,7 +551,7 @@ namespace CBinding
 			CheckReturnCode (exitCode, cr);
 		}
 
-		int ExecuteCommand (string command, string args, string baseDirectory, IProgressMonitor monitor, out string errorOutput)
+		int ExecuteCommand (string command, string args, string baseDirectory, ProgressMonitor monitor, out string errorOutput)
 		{
 			errorOutput = string.Empty;
 			int exitCode = -1;
@@ -587,23 +563,20 @@ namespace CBinding
 			
 					monitor.Log.WriteLine ("{0} {1}", command, args);
 			
-					using (var operationMonitor = new AggregatedOperationMonitor (monitor)) {
-						using (ProcessWrapper p = Runtime.ProcessService.StartProcess (command, args, baseDirectory, monitor.Log, chainedError, null)) {
-							operationMonitor.AddOperation (p); //handles cancellation
-				
-							p.WaitForOutput ();
-							chainedError.UnchainWriter (monitor.Log);
-							chainedError.UnchainWriter (swError);
+					using (ProcessWrapper p = Runtime.ProcessService.StartProcess (command, args, baseDirectory, monitor.Log, chainedError, null))
+					using (monitor.CancellationToken.Register (p.Cancel)) {
+						p.WaitForOutput ();
+						chainedError.UnchainWriter (monitor.Log);
+						chainedError.UnchainWriter (swError);
 
-							errorOutput = swError.ToString ();
-							exitCode = p.ExitCode;
-				
-							if (monitor.IsCancelRequested) {
-								monitor.Log.WriteLine (GettextCatalog.GetString ("Build cancelled"));
-								monitor.ReportError (GettextCatalog.GetString ("Build cancelled"), null);
-								if (exitCode == 0)
-									exitCode = -1;
-							}
+						errorOutput = swError.ToString ();
+						exitCode = p.ExitCode;
+			
+						if (monitor.CancellationToken.IsCancellationRequested) {
+							monitor.Log.WriteLine (GettextCatalog.GetString ("Build cancelled"));
+							monitor.ReportError (GettextCatalog.GetString ("Build cancelled"), null);
+							if (exitCode == 0)
+								exitCode = -1;
 						}
 					}
 				}
@@ -638,7 +611,7 @@ namespace CBinding
 		private bool DoCompilation (ProjectFile file,
 		                            CProjectConfiguration configuration,
 		                            string args,
-		                            IProgressMonitor monitor,
+		                            ProgressMonitor monitor,
 		                            CompilerResults cr,
 		                            bool use_ccache)
 		{
@@ -701,7 +674,7 @@ namespace CBinding
 			return objectFiles.ToArray ();
 		}
 
-		public override void Clean (ProjectFileCollection projectFiles, CProjectConfiguration configuration, IProgressMonitor monitor)
+		public override void Clean (ProjectFileCollection projectFiles, CProjectConfiguration configuration, ProgressMonitor monitor)
 		{
 			//clean up object files
 			foreach (string oFile in ObjectFiles(projectFiles, configuration, false)) {

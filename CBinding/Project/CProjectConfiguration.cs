@@ -43,8 +43,9 @@ namespace CBinding
 	{
 		Bin,
 		StaticLibrary,
-		SharedLibrary
-	}
+		SharedLibrary}
+
+	;
 
 	public enum CVersion
 	{
@@ -87,15 +88,15 @@ namespace CBinding
 		[ItemProperty ("Libs")]
 		[ItemProperty ("Lib", Scope = "*", ValueType = typeof(string))]
 		private ArrayList libs = new ArrayList ();
-		
-		[ItemProperty ("WarningLevel", DefaultValue = WarningLevel.Normal)]
-		private WarningLevel warning_level = WarningLevel.Normal;
 
 		[ItemProperty ("CVersion")]
-		private CVersion cversion = CVersion.CustomVersionString;
+		private CVersion cVersion = CVersion.CustomVersionString;
 
 		[ItemProperty ("CustomCVersionString", DefaultValue = "")]
 		private string customVersionString = string.Empty;
+
+		[ItemProperty ("WarningLevel", DefaultValue = WarningLevel.Normal)]
+		private WarningLevel warning_level = WarningLevel.Normal;
 		
 		[ItemProperty ("WarningsAsErrors", DefaultValue = false)]
 		private bool warnings_as_errors = false;
@@ -188,14 +189,9 @@ namespace CBinding
 			set { precompileHeaders = value; }
 		}
 
-		public WarningLevel WarningLevel {
-			get { return warning_level; }
-			set { warning_level = value; }
-		}
-
 		public CVersion CVersion {
-			get { return cversion; }
-			set { cversion = value; }
+			get { return cVersion; }
+			set { cVersion = value; }
 		}
 
 		public string CustomVersionString {
@@ -205,6 +201,12 @@ namespace CBinding
 			set {
 				customVersionString = value;
 			}
+		}
+
+
+		public WarningLevel WarningLevel {
+			get { return warning_level; }
+			set { warning_level = value; }
 		}
 
 		public bool WarningsAsErrors {
@@ -249,8 +251,7 @@ namespace CBinding
 			libs = conf.libs;
 			source_directory_path = conf.source_directory_path;
 			use_ccache = conf.use_ccache;
-			cversion = conf.cversion;
-			customVersionString = conf.customVersionString;
+			
 			warning_level = conf.warning_level;
 			warnings_as_errors = conf.warnings_as_errors;
 			optimization = conf.optimization;
