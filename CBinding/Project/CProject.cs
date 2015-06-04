@@ -137,7 +137,7 @@ namespace CBinding
 			
 			configuration.DefineSymbols = "DEBUG MONODEVELOP";		
 			configuration.DebugMode = true;
-				
+
 			Configurations.Add (configuration);
 			
 			configuration =
@@ -466,7 +466,7 @@ namespace CBinding
 				return;
 			
 			foreach (ProjectFile f in p.Files)
-				CLangManager.Instance.UpdateTranslationUnit (p, f.Name);
+				CLangManager.Instance.AddToTranslationUnits (p, f.Name);
 		}
 		
 		internal void NotifyPackageRemovedFromProject (Package package)

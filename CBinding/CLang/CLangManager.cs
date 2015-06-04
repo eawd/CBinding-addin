@@ -3,6 +3,8 @@ using CBinding;
 using ClangSharp;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using MonoDevelop.Ide;
+using MonoDevelop.Ide.Gui;
 
 namespace CBinding
 {
@@ -18,47 +20,69 @@ namespace CBinding
 				return instance;
 			}
 		}
-		CXIndex index;
-		Dictionary<string, CXTranslationUnit> translationUnits;
-		Dictionary<string, CXUnsavedFile> unsavedFiles;
+		private CXIndex index;
+		private Dictionary<string, CXTranslationUnit> translationUnits;
+		private CXUnsavedFile[] UnsavedFiles
+		{
+			get {
+				List<CXUnsavedFile> unsavedFiles = new List<CXUnsavedFile>();
+				foreach (Document doc in MonoDevelop.Ide.IdeApp.Workbench.Documents) {
+					if (doc.IsDirty)
+					{CXUnsavedFile unsavedFile = new CXUnsavedFile();
+						unsavedFile.Length = doc.Editor.Text.Length;
+						unsavedFile.Contents = doc.Editor.Text;
+						unsavedFiles.Add (unsavedFile);
+					}
+				}
+				return unsavedFiles.ToArray ();
+			}
+		}
 
 		private CLangManager ()
 		{
 			index = clang.createIndex (0, 0);
 			translationUnits = new Dictionary<string, CXTranslationUnit> ();
-			unsavedFiles = new Dictionary<string, CXUnsavedFile> ();
-
 		}
-
-		public void AddToTranslationUnits(CProject project, string fileName){
-			CXUnsavedFile[] unsavedFilesArray = new CXUnsavedFile[unsavedFiles.Count];
-			unsavedFiles.Values.CopyTo (unsavedFilesArray,0);
+		~CLangManager ()
+		{
+			foreach (CXTranslationUnit unit in translationUnits.Values)
+				clang.disposeTranslationUnit (unit);
+			clang.disposeIndex (index);
+		}
+		public void AddToTranslationUnits(CProject project, string fileName)
+		{
+			CProjectConfiguration active_configuration 
+			= project.DefaultConfiguration as CProjectConfiguration;
 			translationUnits.Add (fileName, 
 				clang.createTranslationUnitFromSourceFile (
 					index,
 					fileName,
 					0,
 					null,
-					Convert.ToUInt32(unsavedFiles.Count),
-					unsavedFilesArray
+					Convert.ToUInt32(UnsavedFiles.Length),
+					UnsavedFiles
 				)
 			);
 		}
 
-		public void UpdateTranslationUnit(CProject project, string fileName){
-			CXUnsavedFile[] unsavedFilesArray = new CXUnsavedFile[unsavedFiles.Count];
-			unsavedFiles.Values.CopyTo (unsavedFilesArray,0);
+		public void UpdateTranslationUnit(CProject project, string fileName)
+		{	
+			CProjectConfiguration active_configuration 
+			= project.DefaultConfiguration as CProjectConfiguration;
+			clang.disposeTranslationUnit (translationUnits [fileName]);
 			translationUnits [fileName] = clang.createTranslationUnitFromSourceFile (
 				index,
 				fileName,
 				0,
 				null,
-				Convert.ToUInt32(unsavedFiles.Count),
-				unsavedFilesArray
+				Convert.ToUInt32(UnsavedFiles.Length),
+				UnsavedFiles
 			);
 		}
 
-		public void RemoveTranslationUnit(CProject project, string fileName){
+		public void RemoveTranslationUnit(CProject project, string fileName)
+		{
+			clang.disposeTranslationUnit (translationUnits [fileName]);
 			translationUnits.Remove (fileName);
 		}
 	}
