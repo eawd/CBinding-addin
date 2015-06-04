@@ -49,21 +49,23 @@ using MonoDevelop.Ide;
 
 namespace CBinding
 {
-	public enum Language {
+	public enum Language
+	{
 		C,
 		CPP,
 		OBJC,
 		OBJCPP
 	}
-	
-	public enum CProjectCommands {
+
+	public enum CProjectCommands
+	{
 		AddPackage,
 		UpdateClassPad,
 		ShowPackageDetails,
 		GotoDeclaration,
 	}
-	
-	[DataInclude(typeof(CProjectConfiguration))]
+
+	[DataInclude (typeof(CProjectConfiguration))]
 	public class CProject : Project, IDeployable
 	{
 		[ItemProperty ("Compiler", ValueType = typeof(CCompiler))]
@@ -72,11 +74,11 @@ namespace CBinding
 		[ItemProperty ("Language")]
 		private Language language;
 		
-		[ItemProperty("Target")]
+		[ItemProperty ("Target")]
 		CBinding.CompileTarget target = CBinding.CompileTarget.Bin;
 		
-    	private ProjectPackageCollection packages = new ProjectPackageCollection ();
-		
+		private ProjectPackageCollection packages = new ProjectPackageCollection ();
+
 		public event ProjectPackageEventHandler PackageAddedToProject;
 		public event ProjectPackageEventHandler PackageRemovedFromProject;
 
@@ -89,7 +91,7 @@ namespace CBinding
 		/// Extensions for C/C++ header files
 		/// </summary>
 		public static string[] HeaderExtensions = { ".H", ".HH", ".HPP", ".HXX" };
-		
+
 		private void Init ()
 		{
 			packages.Project = this;
@@ -97,12 +99,12 @@ namespace CBinding
 			if (IdeApp.IsInitialized)
 				IdeApp.Workspace.ItemAddedToSolution += OnEntryAddedToCombine;
 		}
-		
+
 		public CProject ()
 		{
 			Init ();
 		}
-		
+
 		public CProject (ProjectCreateInformation info,
 		                 XmlElement projectOptions, string language)
 		{
@@ -114,8 +116,7 @@ namespace CBinding
 				binPath = info.BinPath;
 			}
 			
-			switch (language)
-			{
+			switch (language) {
 			case "C":
 				this.language = Language.C;
 				break;
@@ -154,24 +155,24 @@ namespace CBinding
 				c.Output = Name;
 				
 				if (projectOptions != null) {
-					if (projectOptions.Attributes["Target"] != null) {
+					if (projectOptions.Attributes ["Target"] != null) {
 						c.CompileTarget = (CBinding.CompileTarget)Enum.Parse (
-						    typeof(CBinding.CompileTarget),
-						    projectOptions.Attributes["Target"].InnerText);
+							typeof(CBinding.CompileTarget),
+							projectOptions.Attributes ["Target"].InnerText);
 					}
 					if (projectOptions.GetAttribute ("ExternalConsole") == "True") {
 						c.ExternalConsole = true;
 						c.PauseConsoleOutput = true;
 					}
-					if (projectOptions.Attributes["PauseConsoleOutput"] != null) {
+					if (projectOptions.Attributes ["PauseConsoleOutput"] != null) {
 						c.PauseConsoleOutput = bool.Parse (
-							projectOptions.Attributes["PauseConsoleOutput"].InnerText);
+							projectOptions.Attributes ["PauseConsoleOutput"].InnerText);
 					}
-					if (projectOptions.Attributes["CompilerArgs"].InnerText != null) {
-						c.ExtraCompilerArguments = projectOptions.Attributes["CompilerArgs"].InnerText;
+					if (projectOptions.Attributes ["CompilerArgs"].InnerText != null) {
+						c.ExtraCompilerArguments = projectOptions.Attributes ["CompilerArgs"].InnerText;
 					}
-					if (projectOptions.Attributes["LinkerArgs"].InnerText != null) {
-						c.ExtraLinkerArguments = projectOptions.Attributes["LinkerArgs"].InnerText;
+					if (projectOptions.Attributes ["LinkerArgs"].InnerText != null) {
+						c.ExtraLinkerArguments = projectOptions.Attributes ["LinkerArgs"].InnerText;
 					}
 				}
 			}			
@@ -185,12 +186,12 @@ namespace CBinding
 		public override string[] SupportedLanguages {
 			get { return new string[] { "C", "CPP", "Objective C", "Objective C++" }; }
 		}
-		
+
 		public CompileTarget CompileTarget {
 			get { return target; }
 			set { target = value; }
 		}
-		
+
 		public override bool IsCompileable (string fileName)
 		{
 			string ext = Path.GetExtension (fileName.ToUpper ());
@@ -201,7 +202,7 @@ namespace CBinding
 				return (0 <= Array.IndexOf (SourceExtensions, ext));
 			}
 		}
-		
+
 		public override IEnumerable<SolutionItem> GetReferencedItems (ConfigurationSelector configuration)
 		{
 			foreach (var p in base.GetReferencedItems (configuration))
@@ -218,12 +219,12 @@ namespace CBinding
 				}
 			}
 		}
-		
+
 		public static bool IsHeaderFile (string filename)
 		{
 			return (0 <= Array.IndexOf (HeaderExtensions, Path.GetExtension (filename.ToUpper ())));
 		}
-		
+
 		/// <summary>
 		/// Ths pkg-config package is for internal MonoDevelop use only, it is not deployed.
 		/// </summary>
@@ -249,8 +250,8 @@ namespace CBinding
 				writer.WriteLine ("Name: {0}", Name);
 				writer.WriteLine ("Description: {0}", Description);
 				writer.WriteLine ("Version: {0}", Version);
-				writer.WriteLine ("Libs: -L\"{0}\" -l{1}", config.OutputDirectory, config.Output.StartsWith ("lib", StringComparison.OrdinalIgnoreCase)?
-				                                                                                                config.Output.Substring (3):
+				writer.WriteLine ("Libs: -L\"{0}\" -l{1}", config.OutputDirectory, config.Output.StartsWith ("lib", StringComparison.OrdinalIgnoreCase) ?
+				                                                                                                config.Output.Substring (3) :
 				                                                                                                config.Output);
 //				writer.WriteLine ("Cflags: -I{0}", BaseDirectory);
 				writer.WriteLine ("Cflags: -I\"{0}\"", string.Join ("\" -I\"", headerDirectories.ToArray ()));
@@ -268,7 +269,7 @@ namespace CBinding
 				Environment.SetEnvironmentVariable (literal, ld_library_path);
 			}
 		}
-		
+
 		/// <summary>
 		/// This is the pkg-config package that gets deployed.
 		/// <returns>The pkg-config package's filename</returns>
@@ -292,8 +293,8 @@ namespace CBinding
 				// TODO: How should I get this?
 				writer.WriteLine ("Conflicts: {0}", string.Empty);
 				writer.Write ("Libs: -L${libdir} ");
-				writer.WriteLine ("-l{0}", config.Output.StartsWith ("lib", StringComparison.OrdinalIgnoreCase)?
-				                                                            config.Output.Substring (3):
+				writer.WriteLine ("-l{0}", config.Output.StartsWith ("lib", StringComparison.OrdinalIgnoreCase) ?
+				                                                            config.Output.Substring (3) :
 				                                                            config.Output);
 				writer.Write ("Cflags: -I${includedir}/");
 				writer.WriteLine ("{0} {1}", Name, Compiler.GetDefineFlags (project, config));
@@ -301,18 +302,18 @@ namespace CBinding
 			
 			return pkgfile;
 		}
-		
+
 		protected override BuildResult DoBuild (IProgressMonitor monitor, ConfigurationSelector configuration)
 		{
-			CProjectConfiguration pc = (CProjectConfiguration) GetConfiguration (configuration);
+			CProjectConfiguration pc = (CProjectConfiguration)GetConfiguration (configuration);
 			pc.SourceDirectory = BaseDirectory;
 			
 			return compiler_manager.Compile (this,
 				Files, packages,
 				pc,
-			    monitor);
+				monitor);
 		}
-		
+
 		protected virtual ExecutionCommand CreateExecutionCommand (CProjectConfiguration conf)
 		{
 			string app = Path.Combine (conf.OutputDirectory, conf.Output);
@@ -325,14 +326,14 @@ namespace CBinding
 
 		protected override bool OnGetCanExecute (ExecutionContext context, ConfigurationSelector solutionConfiguration)
 		{
-			CProjectConfiguration conf = (CProjectConfiguration) GetConfiguration (solutionConfiguration);
+			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (solutionConfiguration);
 			ExecutionCommand cmd = CreateExecutionCommand (conf);
 			return (target == CBinding.CompileTarget.Bin) && context.ExecutionHandler.CanExecute (cmd);
 		}
 
 		protected override void DoExecute (IProgressMonitor monitor, ExecutionContext context, ConfigurationSelector configuration)
 		{
-			CProjectConfiguration conf = (CProjectConfiguration) GetConfiguration (configuration);
+			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (configuration);
 			bool pause = conf.PauseConsoleOutput;
 			IConsole console;
 			
@@ -371,13 +372,13 @@ namespace CBinding
 				console.Dispose ();
 			}
 		}
-		
+
 		public override FilePath GetOutputFileName (ConfigurationSelector configuration)
 		{
-			CProjectConfiguration conf = (CProjectConfiguration) GetConfiguration (configuration);
+			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (configuration);
 			return conf.OutputDirectory.Combine (conf.CompiledOutputName);
 		}
-		
+
 		public override SolutionItemConfiguration CreateConfiguration (string name)
 		{
 			CProjectConfiguration conf = new CProjectConfiguration ();
@@ -386,12 +387,12 @@ namespace CBinding
 			
 			return conf;
 		}
-		
+
 		public Language Language {
 			get { return language; }
 			set { language = value; }
 		}
-		
+
 		public ICompiler Compiler {
 			get { return compiler_manager; }
 			set {
@@ -415,8 +416,8 @@ namespace CBinding
 				}
 			}
 		}
-		
-		[Browsable(false)]
+
+		[Browsable (false)]
 		[ItemProperty ("Packages")]
 		public ProjectPackageCollection Packages {
 			get { return packages; }
@@ -425,7 +426,7 @@ namespace CBinding
 				packages.Project = this;
 			}
 		}
-		
+
 		protected override void OnFileAddedToProject (ProjectFileEventArgs args)
 		{
 			base.OnFileAddedToProject (args);
@@ -440,7 +441,7 @@ namespace CBinding
 					CLangManager.Instance.AddToTranslationUnits (this, e.ProjectFile.Name);
 			}
 		}
-		
+
 		protected override void OnFileChangedInProject (ProjectFileEventArgs e)
 		{
 			base.OnFileChangedInProject (e);
@@ -448,7 +449,7 @@ namespace CBinding
 			foreach (ProjectFileEventInfo fe in e)
 				CLangManager.Instance.UpdateTranslationUnit (this, fe.ProjectFile.Name);
 		}
-		
+
 		protected override void OnFileRemovedFromProject (ProjectFileEventArgs e)
 		{
 			base.OnFileRemovedFromProject (e);
@@ -468,12 +469,12 @@ namespace CBinding
 			foreach (ProjectFile f in p.Files)
 				CLangManager.Instance.AddToTranslationUnits (p, f.Name);
 		}
-		
+
 		internal void NotifyPackageRemovedFromProject (Package package)
 		{
 			PackageRemovedFromProject (this, new ProjectPackageEventArgs (this, package));
 		}
-		
+
 		internal void NotifyPackageAddedToProject (Package package)
 		{
 			PackageAddedToProject (this, new ProjectPackageEventArgs (this, package));
@@ -483,7 +484,7 @@ namespace CBinding
 		{
 			DeployFileCollection deployFiles = new DeployFileCollection ();
 			
-			CProjectConfiguration conf = (CProjectConfiguration) GetConfiguration (configuration);
+			CProjectConfiguration conf = (CProjectConfiguration)GetConfiguration (configuration);
 			CompileTarget target = conf.CompileTarget;
 			
 			// Headers and resources
@@ -524,7 +525,7 @@ namespace CBinding
 			
 			return deployFiles;
 		}
-		
+
 		/// <summary>
 		/// Finds the corresponding source or header file
 		/// </summary>
@@ -536,13 +537,14 @@ namespace CBinding
 		/// The corresponding file, or null if not found
 		/// <see cref="System.String"/>
 		/// </returns>
-		public string MatchingFile (string sourceFile) {
+		public string MatchingFile (string sourceFile)
+		{
 			string filenameStub = Path.GetFileNameWithoutExtension (sourceFile);
 			bool wantHeader = !CProject.IsHeaderFile (sourceFile);
 			
 			foreach (ProjectFile file in this.Files) {
-				if (filenameStub == Path.GetFileNameWithoutExtension (file.Name) 
-				   && (wantHeader == IsHeaderFile (file.Name))) {
+				if (filenameStub == Path.GetFileNameWithoutExtension (file.Name)
+				    && (wantHeader == IsHeaderFile (file.Name))) {
 					return file.Name;
 				}
 			}
